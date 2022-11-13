@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonAutoexpand
 // @namespace    Patreon
-// @version      1.1.0
+// @version      1.1.1
 // @description  Autoexpand contents, remove useless things.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -12,9 +12,11 @@
 // @updateURL    https://raw.githubusercontent.com/frosn0w/iOSscripts/main/PatreonAutoExpand.js
 // @downloadURL  https://raw.githubusercontent.com/frosn0w/iOSscripts/main/PatreonAutoExpand.js
 // ==/UserScript==
+
 (function () {
 	"use strict";
-	var websites ={
+	var websites =[
+        {
 			name: "Patreon",
 			url: "www.patreon.com",
 			handles: [
@@ -46,7 +48,8 @@
 					item: ".gkqJBN button",
 				},
 			],
-		};
+		}
+        ];
 
 //分类执行
 	var time = 0;
