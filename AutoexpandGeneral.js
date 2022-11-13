@@ -31,12 +31,7 @@
 				//head_bar
 				{
 					type: "remove",
-					item: ".sc-1sly433-0.frJbNq",
-				},
-				//navigation_bar
-				{
-					type: "remove",
-					item: ".sc-1qfj9l9-2.bBIVdO",
+					item: ".sc-nlhetu-0.DyqSS",
 				},
 				//lock_icon,tool_bar,tool bar mini
 				{
