@@ -29,4 +29,4 @@ setInterval(function () {
     if (read_all) read_all.click(); 
     if (load_comments) load_comments.click();
     if (load_replies) load_comments.click();
- },1000);
+ },1758);
