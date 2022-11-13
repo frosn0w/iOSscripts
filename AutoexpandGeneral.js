@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AutoexpandGeneral
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.0.1
+// @version      1.0.2
 // @description  expand hidden, remove useless.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
