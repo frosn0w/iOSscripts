@@ -16,6 +16,7 @@ setInterval(function () {
     var head_bar = document.querySelector('.sc-1x86e6b-2.hGiPqF');
 	var lock_tag = document.querySelector('.sc-ieecCq.dAvYFw');
     var tool_bar = document.querySelector('.sc-iCfMLu.OiRfc');
+    var tool_bar_mini = document.querySelector('.dCNNRZ:nth-of-type(n+2)');
 	var replay_box = document.querySelector('.sc-1ez3bpy-0.fXliAM');
     var read_all = document.querySelector('.gkqJBN button');
     var load_comments = document.querySelector('.sc-1qsig82-0 button');
@@ -24,6 +25,7 @@ setInterval(function () {
 	if (head_bar) head_bar.remove();
     if (lock_tag) lock_tag.remove();
     if (tool_bar) tool_bar.remove();
+    if (tool_bar_mini) tool_bar_mini.remove();
     if (replay_box) replay_box.remove();
     //expand all
     if (read_all) read_all.click(); 
