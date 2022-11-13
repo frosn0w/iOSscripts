@@ -1,0 +1,2 @@
+# iOSscripts
+for iOS safari
