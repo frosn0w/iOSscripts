@@ -1,43 +1,76 @@
 // ==UserScript==
 // @name         AutoexpandGeneral
-// @nameEN       AutoexpandGeneral
-// @nameZH       AutoexpandGeneral
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.0.0
+// @version      1.0.1
 // @description  expand hidden, remove useless.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
+// @match        *://blog.csdn.net/*
 // @run-at       document-end
 // @icon         none
 // @grant        none
 // @license MIT
-// @updateURL    https://raw.githubusercontent.com/frosn0w/iOSscripts/main/AutoexpandGeneral.js
-// @downloadURL  https://raw.githubusercontent.com/frosn0w/iOSscripts/main/AutoexpandGeneral.js
 // ==/UserScript==
 (function () {
 	"use strict";
 	/*
 	 * 网站列表
-	 * @type {name/url/操作类型}
+	 * @type {name/url/type}
+	var load_comments = document.querySelector();
+	var load_replies = document.querySelector(
 	 */
+
 	var websites = [
 		{
 			name: "Patreon",
 			url: "www.patreon.com",
 			handles: [
-				//PC端:展开全部
+			    //Remove
+				//head_bar
 				{
-					type: "click",
-					item: ".expandBtn",
+					type: "remove",
+					item: ".sc-1sly433-0.frJbNq",
 				},
+				//navigation_bar
 				{
-					type: "click",
-					item: ".normal-style",
+					type: "remove",
+					item: ".sc-1qfj9l9-2.bBIVdO",
 				},
-				//PC端:查看等多回答
+				//lock_icon,tool_bar,tool bar mini
+				{
+					type: "remove",
+					item: ".sc-ieecCq.dAvYFw",
+				},
+				//tool_bar
+				{
+					type: "remove",
+					item: ".sc-iCfMLu.OiRfc",
+				},
+				//tool_bar_mini
+				{
+					type: "remove",
+					item: ".dCNNRZ:nth-of-type(n+2)",
+				},
+				//replay_box
+				{
+					type: "remove",
+					item: ".sc-1ez3bpy-0.fXliAM",
+				},
+				//Click
+				//read_all
 				{
 					type: "click",
-					item: ".ic_ask_down_reeow",
+					item: ".gkqJBN button",
+				},
+				//load_comments
+				{
+					type: "click",
+					item: "button.sc-1qsig82-0",
+				},
+				//load_replies
+				{
+					type: "click",
+					item: "button.sc-ieecCq.bPcUvx",
 				},
 			],
 		},
@@ -45,22 +78,22 @@
 			name: "CSDN",
 			url: "blog.csdn.net",
 			handles: [
-				//PC端:自动展开代码块
+				//autoexpand
 				{
 					type: "click",
 					item: ".hide-preCode-bt",
 				},
-				//PC端:关注博主即可阅读全文
+				//display_all
 				{
 					type: "display",
 					item: ".hide-article-box",
 				},
-				//下载弹窗
+				//cancel_box
 				{
 					type: "display",
 					item: ".weixin-shadowbox",
 				},
-				//阅读全文
+				//read_all
 				{
 					type: "display",
 					item: ".btn_mod",
@@ -73,15 +106,15 @@
 					type: "display",
 					item: ".readall_box",
 				},
-				//展开评论
+				//load_comments
 				{
 					type: "click",
 					item: ".btn_comment_readmore",
 				},
 			],
-		}
-    ]
-    
+		},
+    ];
+
 //分类执行
 	var time = 0;
 	var interval = setInterval(() => {
@@ -106,15 +139,17 @@
 							for (var item of items) {
 								item.style.setProperty("height", "unset", "important");
 								item.style.setProperty("max-height", "unset", "important");
-								item.style.setProperty("max-height", "unset", "important");
 							}
 						} else if (handle.type == "overflow") {
 							//slide protect
 							for (var item of items) {
 								item.style.setProperty("overflow", "unset", "important");
 							}
-            } else if (remove.type == ""){
-              
+                        } else if (handle.type == "remove"){
+                            //remove useless
+                            for(var item of items){
+                                item.remove();
+                            }
 						} else {
 							//click
 							for (var item of items) {
@@ -128,5 +163,5 @@
 				}
 			}
 		}
-	}, 100);
+	}, 1758);
 })();
