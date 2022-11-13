@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Patreon@Autoexpand
+// @name         PatreonAutoexpand
 // @namespace    Patreon
 // @version      1.0.0
 // @description  Autoexpand contents, remove useless things.
