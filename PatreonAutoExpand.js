@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonAutoexpand
 // @namespace    Patreon
-// @version      1.0.2
+// @version      1.1.0
 // @description  Autoexpand contents, remove useless things.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -12,26 +12,89 @@
 // @updateURL    https://raw.githubusercontent.com/frosn0w/iOSscripts/main/PatreonAutoExpand.js
 // @downloadURL  https://raw.githubusercontent.com/frosn0w/iOSscripts/main/PatreonAutoExpand.js
 // ==/UserScript==
+(function () {
+	"use strict";
+	var websites ={
+			name: "Patreon",
+			url: "www.patreon.com",
+			handles: [
+			    //Remove
+				//head_bar
+				{
+					type: "remove",
+					item: ".sc-nlhetu-0.DyqSS",
+				},
+				//lock_icon
+				{
+					type: "remove",
+					item: ".sc-ieecCq.dAvYFw",
+				},
+				//tool_bar
+				{
+					type: "remove",
+					item: ".sc-iCfMLu.OiRfc",
+				},
+				//all_comments
+				{
+					type: "remove",
+					item: ".sc-iCfMLu.iQfNYG",
+				},
+				//Click
+				//read_all
+				{
+					type: "click",
+					item: ".gkqJBN button",
+				},
+			],
+		};
 
-setInterval(function () {
-	var head_bar = document.querySelector('.sc-1sly433-0.frJbNq');
-    var navigation_bar = document.querySelector('.sc-1qfj9l9-2.bBIVdO');
-	var lock_tag = document.querySelector('.sc-ieecCq.dAvYFw');
-	var tool_bar = document.querySelector('.sc-iCfMLu.OiRfc');
-	var tool_bar_mini = document.querySelector('.dCNNRZ:nth-of-type(n+2)');
-	var replay_box = document.querySelector('.sc-1ez3bpy-0.fXliAM');
-	var read_all = document.querySelector('.gkqJBN button');
-	var load_comments = document.querySelector('button.sc-1qsig82-0');
-	var load_replies = document.querySelector('button.sc-ieecCq.bPcUvx');
-	//Remove useless elements
-	if (head_bar) head_bar.remove();
-	if (lock_tag) lock_tag.remove();
-	if (tool_bar) tool_bar.remove();
-	if (tool_bar_mini) tool_bar_mini.remove();
-	if (replay_box) replay_box.remove();
-    if (navigation_bar) navigation_bar.remove();
-	//expand all
-	if (read_all) read_all.click();
-	if (load_comments) load_comments.click();
-	if (load_replies) load_replies.click();
-},2345);
+//分类执行
+	var time = 0;
+	var interval = setInterval(() => {
+		if (++time == 100) {
+			clearInterval(interval);
+		}
+		for (var website of websites) {
+			if (location.href.indexOf(website.url) != -1) {
+				if (website.fun) {
+					website.fun();
+				}
+				for (var handle of website.handles) {
+					var items = document.querySelectorAll(handle.item);
+					if (items.length != 0) {
+						if (handle.type == "display") {
+							//display
+							for (var item of items) {
+								item.style.display = "none";
+							}
+						} else if (handle.type == "height") {
+							//unfold
+							for (var item of items) {
+								item.style.setProperty("height", "unset", "important");
+								item.style.setProperty("max-height", "unset", "important");
+							}
+						} else if (handle.type == "overflow") {
+							//slide protect
+							for (var item of items) {
+								item.style.setProperty("overflow", "unset", "important");
+							}
+                        } else if (handle.type == "remove"){
+                            //remove useless
+                            for(var item of items){
+                                item.remove();
+                            }
+						} else {
+							//click
+							for (var item of items) {
+								if (item != null && item.getAttribute("opened") != "yes") {
+									item.click();
+									item.setAttribute("opened", "yes");
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}, 1758);
+})();
