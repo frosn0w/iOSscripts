@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         PatreonAutoexpand
+// @name         Patreon Clear
 // @namespace    Patreon
-// @version      1.1.1
+// @version      1.1.3
 // @description  Autoexpand contents, remove useless things.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
