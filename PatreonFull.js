@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonFull
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.1.0
+// @version      1.1.6
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -16,6 +16,17 @@ setInterval(function () {
   "use strict";
   var btns = document.querySelectorAll("button");
   var divs = document.querySelectorAll("div");
+  var spans = document.querySelectorAll("span");
+  //spans process
+  for (let u = 0; u < spans.length; u++) {
+    if (spans[u].getAttribute("color") === "content") {
+      spans[u].parentNode.parentNode.parentNode.remove();
+    }
+    //continue
+    else {
+      continue;
+    }
+  }
   //btns click
   for (let i = 0; i < btns.length; i++) {
     if (
