@@ -32,13 +32,7 @@ setInterval(function () {
     if (
       btns[i].innerText === "继续阅读" ||
       btns[i].innerText === "加载更多留言" ||
-      btns[i].innerText === "加载 1 条回复" ||
-      btns[i].innerText === "加载 2 条回复" ||
-      btns[i].innerText === "加载 3 条回复" ||
-      btns[i].innerText === "加载 4 条回复" ||
-      btns[i].innerText === "加载 5 条回复" ||
-      btns[i].innerText === "加载 6 条回复" ||
-      btns[i].innerText === "加载 7 条回复"
+      btns[i].innerText.includes("条回复")
     ) {
       btns[i].click();
     }
@@ -76,4 +70,4 @@ setInterval(function () {
       continue;
     }
   }
-}, 500);
+}, 750);
