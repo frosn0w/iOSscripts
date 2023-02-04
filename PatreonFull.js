@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonFull
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.1.6
+// @version      1.1.7
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
