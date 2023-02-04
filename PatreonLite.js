@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonLite
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.1.6
+// @version      1.1.7
 // @description  Author post only, all comments removed.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -55,14 +55,12 @@ setInterval(function () {
   }
   for (let j = 0; j < divs.length; j++) {
     //remove all comments block using comeent-box
-    if (divs[j].getAttribute("data-tag") === "comment-field-box") {
-      divs[
-        j
-      ].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+    if (divs[j].getAttribute("data-tag") === "comment-row") {
+      divs[j].parentNode.remove();
     }
     //continue
     else {
       continue;
     }
   }
-}, 500);
+}, 750);
