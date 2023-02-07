@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonFull
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.1.8
+// @version      1.1.9
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -11,72 +11,74 @@
 // @license MIT
 // ==/UserScript==
 function sleep(time) {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve();
-            }, time);
-        });
-    }
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, time);
+  });
+}
 var close = 1;
 setInterval(async function () {
   "use strict";
-  if (close < 4){
-     var btns = document.querySelectorAll("button");
-     var divs = document.querySelectorAll("div");
-     var spans = document.querySelectorAll("span");
-     var ps = document.querySelectorAll("p");
-     //spans process
-     for (let u = 0; u < spans.length; u++) {
-         if (spans[u].getAttribute("color") === "content") {
-             spans[u].parentNode.parentNode.parentNode.remove();
-         }
-         //continue
-         else {
-             continue;
-         }
-     }
-     //btns click
-     for (let i = 0; i < btns.length; i++) {
-         if (
-             btns[i].innerText === "继续阅读" ||
-             btns[i].innerText === "加载更多留言" ||
-             btns[i].innerText.includes === (" 条回复")
-         ){
-             btns[i].click();
-             await sleep(300)
-         }
-         //remove lock icon
-         else if (btns[i].innerText === "已解锁") {
-             btns[i].remove();
-         }
-         //remove toolbar
-         else if (btns[i].getAttribute("aria-label") === "更多操作") {
-             btns[i].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
-         }
-         
-         //continue
-         else {
-             continue;
-         }
-     }
-     for (let j = 0; j < divs.length; j++) {
-         //remove comeent-box
-         if (divs[j].getAttribute("data-tag") === "comment-field-box") {
-             divs[j].parentNode.parentNode.parentNode.remove();
-         }
-         //remove minitoolbar
-         else if (divs[j].getAttribute("data-tag") === "comment-actions") {
-             divs[j].remove();
-         }
-         //remove avatars
-         else if (divs[j].getAttribute("data-tag") === "comment-avatar-wrapper") {
-             divs[j].remove();
-         }
-         //continue
-         else {
-             continue;
-         }
-     }
-  close++
+  if (close < 20) {
+    var btns = document.querySelectorAll("button");
+    var divs = document.querySelectorAll("div");
+    var spans = document.querySelectorAll("span");
+    var ps = document.querySelectorAll("p");
+    //spans process
+    for (let u = 0; u < spans.length; u++) {
+      if (spans[u].getAttribute("color") === "content") {
+        spans[u].parentNode.parentNode.parentNode.remove();
+      }
+      //continue
+      else {
+        continue;
+      }
+    }
+    //btns process
+    for (let i = 0; i < btns.length; i++) {
+      //expand content
+      if (btns[i].innerText === "继续阅读") {
+        btns[i].click();
+      }
+      //click comment
+      else if (btns[i].innerText === "加载更多留言") {
+        btns[i].click();
+        await sleep(150);
+      }
+      //click replay
+      else if (btns[i].innerText.includes(" 条回复")) {
+        btns[i].click();
+        await sleep(100);
+      }
+      //remove lock icon
+      else if (btns[i].innerText === "已解锁") {
+        btns[i].remove();
+      }
+      //remove toolbar
+      else if (btns[i].getAttribute("aria-label") === "更多操作") {
+        btns[i].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+      }
+
+      //continue
+      else {
+        continue;
+      }
+    }
+    for (let j = 0; j < divs.length; j++) {
+      //remove comeent-box
+      if (divs[j].getAttribute("data-tag") === "comment-field-box") {
+        divs[j].parentNode.parentNode.parentNode.remove();
+      }
+      //remove minitoolbar
+      else if (divs[j].getAttribute("data-tag") === "comment-actions") {
+        divs[j].remove();
+      }
+      //continue
+      else {
+        continue;
+      }
+    }
+    close++;
   }
-}, 750);
+}, 1500);
