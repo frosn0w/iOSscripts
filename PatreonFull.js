@@ -10,10 +10,17 @@
 // @grant        none
 // @license MIT
 // ==/UserScript==
+function sleep(time) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve();
+            }, time);
+        });
+    }
 var close = 1;
-setInterval(function () {
+setInterval(async function () {
   "use strict";
-  if (close ==1){
+  if (close < 4){
      var btns = document.querySelectorAll("button");
      var divs = document.querySelectorAll("div");
      var spans = document.querySelectorAll("span");
@@ -36,6 +43,7 @@ setInterval(function () {
              btns[i].innerText.includes === (" 条回复")
          ){
              btns[i].click();
+             await sleep(300)
          }
          //remove lock icon
          else if (btns[i].innerText === "已解锁") {
@@ -45,13 +53,7 @@ setInterval(function () {
          else if (btns[i].getAttribute("aria-label") === "更多操作") {
              btns[i].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
          }
-         //remove header
-         else if (
-             btns[i].getAttribute("aria-label") === "筛选条件选项" &&
-             btns[i].getAttribute("data-tag") === "menuToggleDiv"
-         ) {
-             btns[i].parentNode.parentNode.parentNode.remove();
-         }
+         
          //continue
          else {
              continue;
