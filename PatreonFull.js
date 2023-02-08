@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonFull
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.1.9
+// @version      1.2.0
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -20,11 +20,11 @@ function sleep(time) {
 var close = 1;
 setInterval(async function () {
   "use strict";
-  if (close < 20) {
+  if (close < 15) {
     var btns = document.querySelectorAll("button");
     var divs = document.querySelectorAll("div");
     var spans = document.querySelectorAll("span");
-    var ps = document.querySelectorAll("p");
+    var as = document.querySelectorAll("a");
     //spans process
     for (let u = 0; u < spans.length; u++) {
       if (spans[u].getAttribute("color") === "content") {
@@ -65,6 +65,7 @@ setInterval(async function () {
         continue;
       }
     }
+    //div process
     for (let j = 0; j < divs.length; j++) {
       //remove comeent-box
       if (divs[j].getAttribute("data-tag") === "comment-field-box") {
@@ -73,6 +74,16 @@ setInterval(async function () {
       //remove minitoolbar
       else if (divs[j].getAttribute("data-tag") === "comment-actions") {
         divs[j].remove();
+      }
+      //continue
+      else {
+        continue;
+      }
+    }
+    //as process
+    for (let v = 0; v < as.length; v++) {
+      if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
+        as[v].parentNode.remove();
       }
       //continue
       else {
