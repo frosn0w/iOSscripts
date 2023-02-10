@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonFull
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.2.0
+// @version      1.2.1
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -59,7 +59,12 @@ setInterval(async function () {
       else if (btns[i].getAttribute("aria-label") === "更多操作") {
         btns[i].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
       }
-
+      //remove header
+      else if (
+        btns[i].getAttribute("aria-label") === "筛选条件选项" &&
+        btns[i].getAttribute("data-tag") === "menuToggleDiv") {
+          btns[i].parentNode.parentNode.parentNode.parentNode.remove();
+      }
       //continue
       else {
         continue;
@@ -92,4 +97,4 @@ setInterval(async function () {
     }
     close++;
   }
-}, 1500);
+}, 1000);
