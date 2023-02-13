@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonFull
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.2.1
+// @version      1.2.2
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -35,41 +35,6 @@ setInterval(async function () {
         continue;
       }
     }
-    //btns process
-    for (let i = 0; i < btns.length; i++) {
-      //expand content
-      if (btns[i].innerText === "继续阅读") {
-        btns[i].click();
-      }
-      //click comment
-      else if (btns[i].innerText === "加载更多留言") {
-        btns[i].click();
-        await sleep(150);
-      }
-      //click replay
-      else if (btns[i].innerText.includes(" 条回复")) {
-        btns[i].click();
-        await sleep(100);
-      }
-      //remove lock icon
-      else if (btns[i].innerText === "已解锁") {
-        btns[i].remove();
-      }
-      //remove toolbar
-      else if (btns[i].getAttribute("aria-label") === "更多操作") {
-        btns[i].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
-      }
-      //remove header
-      else if (
-        btns[i].getAttribute("aria-label") === "筛选条件选项" &&
-        btns[i].getAttribute("data-tag") === "menuToggleDiv") {
-          btns[i].parentNode.parentNode.parentNode.parentNode.remove();
-      }
-      //continue
-      else {
-        continue;
-      }
-    }
     //div process
     for (let j = 0; j < divs.length; j++) {
       //remove comeent-box
@@ -95,6 +60,41 @@ setInterval(async function () {
         continue;
       }
     }
+    //btns process
+    for (let i = 0; i < btns.length; i++) {
+      //expand content
+      if (btns[i].innerText === "继续阅读") {
+        btns[i].click();
+      }
+      //remove lock icon
+      else if (btns[i].innerText === "已解锁") {
+        btns[i].remove();
+      }
+      //remove toolbar
+      else if (btns[i].getAttribute("aria-label") === "更多操作") {
+        btns[i].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+      }
+      //remove header
+      else if (
+        btns[i].getAttribute("aria-label") === "筛选条件选项" &&
+        btns[i].getAttribute("data-tag") === "menuToggleDiv") {
+          btns[i].parentNode.parentNode.parentNode.parentNode.remove();
+      }
+      //click comment
+      else if (btns[i].innerText === "加载更多留言") {
+        btns[i].click();
+        await sleep(150);
+      }
+      //click replay
+      else if (btns[i].innerText.includes(" 条回复")) {
+        btns[i].click();
+        await sleep(100);
+      }
+      //continue
+      else {
+        continue;
+      }
+    }
     close++;
   }
-}, 1000);
+}, 1250);
