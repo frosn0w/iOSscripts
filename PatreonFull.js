@@ -63,7 +63,7 @@ setInterval(async function () {
         as[v].parentNode.remove();
       }
       else if (as[v].getAttribute("data-tag") === "commenter-name" && as[v].innerText === "贝乐斯 Think Analyze Invest") {
-        as[v].style.color = 'blue';
+        as[v].style.color = 'rgb(0, 47, 167)';
       }
       //continue
       else {
