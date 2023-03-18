@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonFull
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.2.2
+// @version      1.3.0
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -30,6 +30,13 @@ setInterval(async function () {
       if (spans[u].getAttribute("color") === "content") {
         spans[u].parentNode.parentNode.parentNode.remove();
       }
+      //remove outdated
+      else if (spans[u].innerText.includes("天前 时间： ")) {
+        spans[u].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+      }
+      else if (spans[u].innerText.includes("昨天 时间： ") && spans[u].innerText.split('时间： ')[1].split(':')[0]<20) {
+              spans[u].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+      }
       //continue
       else {
         continue;
@@ -54,6 +61,9 @@ setInterval(async function () {
     for (let v = 0; v < as.length; v++) {
       if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
         as[v].parentNode.remove();
+      }
+      else if (as[v].getAttribute("data-tag") === "commenter-name" && as[v].innerText === "贝乐斯 Think Analyze Invest") {
+        as[v].style.color = 'blue';
       }
       //continue
       else {
@@ -81,7 +91,8 @@ setInterval(async function () {
           btns[i].parentNode.parentNode.parentNode.parentNode.remove();
       }
       //click comment
-      else if (btns[i].innerText === "加载更多留言") {
+      /*
+        else if (btns[i].innerText === "加载更多留言") {
         btns[i].click();
         await sleep(150);
       }
@@ -90,6 +101,7 @@ setInterval(async function () {
         btns[i].click();
         await sleep(100);
       }
+      */
       //continue
       else {
         continue;
