@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AliLearn Checkin
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.0
+// @version      1.0.1
 // @description  Alibaba Product checkin
 // @author       frosn0w
 // @match        https://xue.alibaba-inc.com/trs/xue/home
@@ -22,6 +22,8 @@
             if (spans[i].innerText === "签到") {
                 // 点击元素
                 spans[i].click();
+                // 清除定时器，不再执行
+                clearInterval(timer);
             }
         }
     }, 1000);
