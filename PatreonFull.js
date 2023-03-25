@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonFull
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.3.0
+// @version      1.3.1
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -20,7 +20,7 @@ function sleep(time) {
 var close = 1;
 setInterval(async function () {
   "use strict";
-  if (close < 15) {
+  if (close < 5) {
     var btns = document.querySelectorAll("button");
     var divs = document.querySelectorAll("div");
     var spans = document.querySelectorAll("span");
@@ -52,12 +52,16 @@ setInterval(async function () {
       else if (divs[j].getAttribute("data-tag") === "comment-actions") {
         divs[j].remove();
       }
+      //remove load more
+      else if (divs[j].innerText === "加载更多") {
+        divs[j].remove();
+      }
       //continue
       else {
         continue;
       }
     }
-    //as process
+    //a process
     for (let v = 0; v < as.length; v++) {
       if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
         as[v].parentNode.remove();
@@ -72,12 +76,9 @@ setInterval(async function () {
     }
     //btns process
     for (let i = 0; i < btns.length; i++) {
-      //expand content
-      if (btns[i].innerText === "继续阅读") {
-        btns[i].click();
-      }
+
       //remove lock icon
-      else if (btns[i].innerText === "已解锁") {
+      if (btns[i].innerText === "已解锁") {
         btns[i].remove();
       }
       //remove toolbar
@@ -89,6 +90,11 @@ setInterval(async function () {
         btns[i].getAttribute("aria-label") === "筛选条件选项" &&
         btns[i].getAttribute("data-tag") === "menuToggleDiv") {
           btns[i].parentNode.parentNode.parentNode.parentNode.remove();
+      }
+      //expand content
+      else if (btns[i].innerText === "继续阅读") {
+        btns[i].click();
+        await sleep(375);
       }
       //click comment
       /*
