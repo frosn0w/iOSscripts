@@ -31,7 +31,7 @@ setInterval(async function () {
         spans[u].parentNode.parentNode.parentNode.remove();
       }
       //remove outdated
-      else if (spans[u].innerText.includes("天前 时间： ")) {
+      else if (spans[u].innerText.includes("天前 时间： ") || spans[u].innerText.includes("日 时间： ")) {
         spans[u].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
       }
       else if (spans[u].innerText.includes("昨天 时间： ") && spans[u].innerText.split('时间： ')[1].split(':')[0]<20) {
@@ -54,7 +54,7 @@ setInterval(async function () {
       }
       //remove load more
       else if (divs[j].innerText === "加载更多") {
-        divs[j].remove();
+        divs[j].parentNode.parentNode.remove();
       }
       //continue
       else {
