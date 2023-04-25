@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Kelvin's Checkin Suite
+// @name         CheckinSuite
 // @namespace    https://github.com/frosn0w/iOSscripts
 // @version      1.1
 // @description  Checkin all in one
