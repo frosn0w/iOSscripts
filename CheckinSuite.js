@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         CheckinSuite
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.1
+// @version      1.2
 // @description  Checkin all in one
 // @author       frosn0w
 // @match        https://xue.alibaba-inc.com/trs/xue/home*
@@ -19,11 +19,11 @@
         var spans = document.querySelectorAll("span");
         for (var i = 0; i < spans.length; i++) {
             //alilearn
-            if (spans[i].getAttribute("class") === "next-btn-helper" || spans[i].innerText === "签到") {
+            if (spans[i].getAttribute("class") === "next-btn-helper" && spans[i].innerText === "签到") {
                 spans[i].click();
             }
             //hifini
-            else if (spans[i].getAttribute("class") === "mibbs_signpanel JD_sign " || spans[i].innerText === "签到") {
+            else if (spans[i].getAttribute("class") === "mibbs_signpanel JD_sign " && spans[i].innerText === "签到") {
                 spans[i].click();
             }
             else continue;
