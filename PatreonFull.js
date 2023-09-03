@@ -1,14 +1,14 @@
 // ==UserScript==
-// @name         PatreonFull
+// @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.3.1
+// @version      1.3.2
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
 // @run-at       document-end
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAA3tJREFUeF7tmj1s00AUx/8vbjdaOy1MMMDCQBlggoEBJMRE2ZqNBSEisdRRO7A1nVhaxSxIRagDYzu2E0KiAwNMdKAMLDDABG3swtamD10hJRjbd44T+YgvY+757r3ffbyPO0LBf1Rw+2EAmBVQcAJmCxR8AZhDUHkLfJ8ZO9c6aN0hxhUGLum4cgh4w4RXVqm1PLL4472KjkoAAteZY3BdpUNdZBg8X/Z2pTpLAXyrjZ8c4v3PuhiWRo99Gjp1vLH9JekbKYDAHW0wyE0zsC6yBPZsb7eWCYDv2m8BXNDFqJR6bDpecDErAE45qFbijhckrnLpFvBd2wDQakpTKtP3FcCg+bLnJ7qbpuucLoGXGLihoj8Bzw9A1bLnf0qSb7qjdQLNJcn0HYBsgLZyvmvfA7CkAgBA1fGCJyqysi0q0y/zGRAeoOk6V8OKE/MJEFZUDDqSYVSY6Gv4m7Lnb3T+px0AoZxfs1fAmEplsEyYsOo0gkpYTBsAYuY7Z6enEELGd46lFQAivt85Sz2BEDJe9MlMj9uw9QIAfokIhbveDjF9MeiavgDEJu0FhIQ+9AcQAaE57awR8U3ZWffrU16zvd1bRy40dKhqBYBBZ0TAEunnO2ax2zgg5hw5jBNEgEXgj7kGQiJqY8bTOD/PTOsEftZNHEDEtxk0GWkgo0KEu7Losu+BkMqSzlPGADDpsKkHmIKIKYklEMicDud5wquMbbyA8QLGC/TXC4jEhUHrsfU+wioYL1LUA9tbuwrC9YRUusrMk0SUmGD1/QxokXV+vLGz5U/bU//E+53JUFR73CnGqDiPgtXY8trv9sMb61ZrK9dkqE1YlKlIFETavyw1Acm3WqXDkQCyGK8AUG8AvTBeAkFfAEUviha6LP7XbU0RL0baACKvxsBnu4kDGPThv7wai/LLkXGCQhwgS3hyvxhRuR7fro1NDPH+w9gCZ8hKAq2VrNKDkcWdxKduTdepEzjf63HZDOXd3vdQOG8DZeMbAFnrAYFrv9b1aaxs9sXTWdsLLmerCdbsBTBmZINp2U5YdBrBbCYA27VjExZb77Q0UKKUZVkTMk8iLYqKMVTcjW6ACFS3PX9eppcSANGJeDQ9zHuzDBKPoHR9OrtJ4I09Gl6QPZL+k3DKEA14u/IKGFQOBsCgzqyqXWYFqJIaVDmzAgZ1ZlXt+gnhrHFfaCYwZQAAAABJRU5ErkJggg==
 // @grant        none
-// @license      MIT
+// @license MIT
 // ==/UserScript==
 function sleep(time) {
   return new Promise((resolve) => {
@@ -20,7 +20,7 @@ function sleep(time) {
 var close = 1;
 setInterval(async function () {
   "use strict";
-  if (close < 5) {
+  if (close < 50) {
     var btns = document.querySelectorAll("button");
     var divs = document.querySelectorAll("div");
     var spans = document.querySelectorAll("span");
@@ -36,6 +36,10 @@ setInterval(async function () {
       }
       else if (spans[u].innerText.includes("昨天 时间： ") && spans[u].innerText.split('时间： ')[1].split(':')[0]<20) {
               spans[u].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+      }
+      //remove lock icon
+      else if (spans[u].innerText === "已解锁") {
+        spans[u].parentNode.remove();
       }
       //continue
       else {
@@ -54,7 +58,7 @@ setInterval(async function () {
       }
       //remove load more
       else if (divs[j].innerText === "加载更多") {
-        divs[j].parentNode.parentNode.remove();
+        divs[j].parentNode.parentNode.parentNode.remove();
       }
       //continue
       else {
@@ -67,7 +71,7 @@ setInterval(async function () {
         as[v].parentNode.remove();
       }
       else if (as[v].getAttribute("data-tag") === "commenter-name" && as[v].innerText === "贝乐斯 Think Analyze Invest") {
-        as[v].style.color = 'rgb(0, 47, 167)';
+        as[v].style.color = 'rgb(245, 31, 0)';
       }
       //continue
       else {
@@ -76,13 +80,8 @@ setInterval(async function () {
     }
     //btns process
     for (let i = 0; i < btns.length; i++) {
-
-      //remove lock icon
-      if (btns[i].innerText === "已解锁") {
-        btns[i].remove();
-      }
       //remove toolbar
-      else if (btns[i].getAttribute("aria-label") === "更多操作") {
+      if (btns[i].getAttribute("aria-label") === "更多操作") {
         btns[i].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
       }
       //remove header
@@ -115,4 +114,4 @@ setInterval(async function () {
     }
     close++;
   }
-}, 1250);
+}, 2500);
