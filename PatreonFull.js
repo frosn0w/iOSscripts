@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.3.2
+// @version      1.4
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -40,6 +40,14 @@ setInterval(async function () {
       //remove lock icon
       else if (spans[u].innerText === "已解锁") {
         spans[u].parentNode.remove();
+      }
+      // Get Date
+      else if (spans[u].innerText.includes(" 小时前") || spans[u].innerText.includes(" 分钟前")) {
+        var Current = new Date();
+        const mm = Current.getMonth()+1;
+        const dd = Current.getDate();
+        const TimeString = mm + "月" + dd + "日" ;
+        spans[u].textContent = TimeString;
       }
       //continue
       else {
