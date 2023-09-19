@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.4
+// @version      1.5
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -26,34 +26,6 @@ setInterval(async function () {
     var spans = document.querySelectorAll("span");
     var as = document.querySelectorAll("a");
     //spans process
-    for (let u = 0; u < spans.length; u++) {
-      if (spans[u].getAttribute("color") === "content") {
-        spans[u].parentNode.parentNode.parentNode.remove();
-      }
-      //remove outdated
-      else if (spans[u].innerText.includes("天前 时间： ") || spans[u].innerText.includes("日 时间： ")) {
-        spans[u].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
-      }
-      else if (spans[u].innerText.includes("昨天 时间： ") && spans[u].innerText.split('时间： ')[1].split(':')[0]<20) {
-              spans[u].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
-      }
-      //remove lock icon
-      else if (spans[u].innerText === "已解锁") {
-        spans[u].parentNode.remove();
-      }
-      // Get Date
-      else if (spans[u].innerText.includes(" 小时前") || spans[u].innerText.includes(" 分钟前")) {
-        var Current = new Date();
-        const mm = Current.getMonth()+1;
-        const dd = Current.getDate();
-        const TimeString = mm + "月" + dd + "日" ;
-        spans[u].textContent = TimeString;
-      }
-      //continue
-      else {
-        continue;
-      }
-    }
     //div process
     for (let j = 0; j < divs.length; j++) {
       //remove comeent-box
@@ -64,10 +36,6 @@ setInterval(async function () {
       else if (divs[j].getAttribute("data-tag") === "comment-actions") {
         divs[j].remove();
       }
-      //remove load more
-      else if (divs[j].innerText === "加载更多") {
-        divs[j].parentNode.parentNode.parentNode.remove();
-      }
       //continue
       else {
         continue;
@@ -75,11 +43,32 @@ setInterval(async function () {
     }
     //a process
     for (let v = 0; v < as.length; v++) {
+      //remove avatar
       if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
         as[v].parentNode.remove();
       }
-      else if (as[v].getAttribute("data-tag") === "commenter-name" && as[v].innerText === "贝乐斯 Think Analyze Invest") {
-        as[v].style.color = 'rgb(245, 31, 0)';
+      //remove outdated
+      else if (as[v].innerText.includes(" 天前") || as[v].innerText.includes("昨天")) {
+        as[v].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+      }
+      //format date
+      else if (as[v].innerText.includes(" 小时前") || as[v].innerText.includes(" 分钟前")) {
+        var Current = new Date();
+        const mm = Current.getMonth()+1;
+        const dd = Current.getDate();
+        const TimeString = mm + "月" + dd + "日" ;
+        as[v].textContent = TimeString;
+      }
+      //bold name
+      else if (as[v].getAttribute("data-tag") === "commenter-name") {
+          if (as[v].innerText === "贝乐斯 Think Analyze Invest"){
+              as[v].style.color = 'rgb(245, 31, 0)';
+              as[v].style.fontWeight = "bold";
+          }
+          else {
+              as[v].style.color = 'rgb(0, 0, 0)';
+              as[v].style.fontWeight = "bold";
+          }
       }
       //continue
       else {
@@ -90,7 +79,7 @@ setInterval(async function () {
     for (let i = 0; i < btns.length; i++) {
       //remove toolbar
       if (btns[i].getAttribute("aria-label") === "更多操作") {
-        btns[i].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+        btns[i].parentNode.remove();
       }
       //remove header
       else if (
@@ -98,13 +87,21 @@ setInterval(async function () {
         btns[i].getAttribute("data-tag") === "menuToggleDiv") {
           btns[i].parentNode.parentNode.parentNode.parentNode.remove();
       }
+      //remove load more
+      else if (btns[i].innerText === "加载更多") {
+        btns[i].parentNode.parentNode.remove();
+      }
+      //remove expand
+      else if (btns[i].innerText === "收起") {
+        btns[i].parentNode.remove();
+      }
       //expand content
-      else if (btns[i].innerText === "继续阅读") {
+      else if (btns[i].innerText === "展开") {
         btns[i].click();
         await sleep(375);
       }
       //click comment
-      /*
+/*
         else if (btns[i].innerText === "加载更多留言") {
         btns[i].click();
         await sleep(150);
@@ -114,7 +111,7 @@ setInterval(async function () {
         btns[i].click();
         await sleep(100);
       }
-      */
+*/
       //continue
       else {
         continue;
