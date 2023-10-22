@@ -116,13 +116,11 @@ setInterval(async function () {
       //expand content
       else if (btns[i].innerText === "展开") {
         btns[i].click();
-        await sleep(375);
       }
 /*
       //click comment
         else if (btns[i].innerText === "加载更多留言") {
         btns[i].click();
-        await sleep(150);
       }
 */
       //continue
