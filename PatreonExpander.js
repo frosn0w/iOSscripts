@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.0
+// @version      2.1
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -10,6 +10,7 @@
 // @grant        none
 // @license MIT
 // ==/UserScript==
+/*
 function sleep(time) {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -17,7 +18,9 @@ function sleep(time) {
     }, time);
   });
 }
+*/
 var close = 1;
+document.querySelector("header").remove();
 setInterval(async function () {
   "use strict";
   if (close < 50) {
@@ -30,7 +33,6 @@ setInterval(async function () {
     const mm = Current.getMonth()+1;
     const ydd = Current.getDate()-1;
     const dd = Current.getDate();
-    document.querySelector("header").remove();
     //div process
     for (let j = 0; j < divs.length; j++) {
       //remove subnav
@@ -51,7 +53,7 @@ setInterval(async function () {
       }
       //remove comeent-box
       else if (divs[j].getAttribute("data-tag") === "comment-field-box") {
-        divs[j].parentNode.parentNode.parentNode.parentNode.remove();
+        divs[j].parentNode.parentNode.parentNode.remove();
       }
       //remove sort on the top
       else if (divs[j].getAttribute("data-tag") === "sort-posts" && divs[j].innerText.includes("最新文章")) {
