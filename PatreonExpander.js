@@ -10,15 +10,6 @@
 // @grant        none
 // @license MIT
 // ==/UserScript==
-/*
-function sleep(time) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, time);
-  });
-}
-*/
 var close = 1;
 document.querySelector("header").remove();
 setInterval(async function () {
@@ -30,21 +21,33 @@ setInterval(async function () {
     var as = document.querySelectorAll("a");
     var navs = document.querySelectorAll("nav");
     var Current = new Date();
-    const mm = Current.getMonth()+1;
-    const ydd = Current.getDate()-1;
+    const mm = Current.getMonth() + 1;
+    const ydd = Current.getDate() - 1;
     const dd = Current.getDate();
     //div process
     for (let j = 0; j < divs.length; j++) {
       //remove subnav
-      if (divs[j].getAttribute("data-pendo-guide") === "creator-page:membership-tab" && divs[j].innerText.includes("我的会籍")) {
-        divs[j].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+      if (
+        divs[j].getAttribute("data-pendo-guide") ===
+          "creator-page:membership-tab" &&
+        divs[j].innerText.includes("我的会籍")
+      ) {
+        divs[
+          j
+        ].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
       }
       //remove head img
-      else if (divs[j].getAttribute("data-tag") === "creation-name" && divs[j].innerText.includes("Love & Peace !")) {
+      else if (
+        divs[j].getAttribute("data-tag") === "creation-name" &&
+        divs[j].innerText.includes("Love & Peace !")
+      ) {
         divs[j].parentNode.parentNode.parentNode.parentNode.remove();
       }
       //remove outdated post card
-      else if (divs[j].getAttribute("data-tag") === "post-card" && divs[j].innerText.includes(" 天前")) {
+      else if (
+        divs[j].getAttribute("data-tag") === "post-card" &&
+        divs[j].innerText.includes(" 天前")
+      ) {
         divs[j].remove();
       }
       //remove main navigation
@@ -56,7 +59,10 @@ setInterval(async function () {
         divs[j].parentNode.parentNode.parentNode.remove();
       }
       //remove sort on the top
-      else if (divs[j].getAttribute("data-tag") === "sort-posts" && divs[j].innerText.includes("最新文章")) {
+      else if (
+        divs[j].getAttribute("data-tag") === "sort-posts" &&
+        divs[j].innerText.includes("最新文章")
+      ) {
         divs[j].parentNode.remove();
       }
       //remove comment toolbar
@@ -71,12 +77,14 @@ setInterval(async function () {
     //a process
     for (let v = 0; v < as.length; v++) {
       //format date
-      if (as[v].innerText.includes(" 小时前") || as[v].innerText.includes(" 分钟前")) {
-        const TimeString = mm + "月" + dd + "日" ;
+      if (
+        as[v].innerText.includes(" 小时前") ||
+        as[v].innerText.includes(" 分钟前")
+      ) {
+        const TimeString = mm + "月" + dd + "日";
         as[v].textContent = TimeString;
-      }
-      else if (as[v].innerText.includes("昨天")) {
-        const TimeString1 = mm + "月" + ydd + "日" ;
+      } else if (as[v].innerText.includes("昨天")) {
+        const TimeString1 = mm + "月" + ydd + "日";
         as[v].textContent = TimeString1;
       }
       //remove avatar
@@ -85,14 +93,13 @@ setInterval(async function () {
       }
       //bold name
       else if (as[v].getAttribute("data-tag") === "commenter-name") {
-          if (as[v].innerText === "贝乐斯 Think Analyze Invest"){
-              as[v].style.color = 'rgb(245, 31, 0)';
-              as[v].style.fontWeight = "bold";
-          }
-          else {
-              as[v].style.color = 'rgb(0, 0, 0)';
-              as[v].style.fontWeight = "bold";
-          }
+        if (as[v].innerText === "贝乐斯 Think Analyze Invest") {
+          as[v].style.color = "rgb(245, 31, 0)";
+          as[v].style.fontWeight = "bold";
+        } else {
+          as[v].style.color = "rgb(0, 0, 0)";
+          as[v].style.fontWeight = "bold";
+        }
       }
       //continue
       else {
@@ -102,11 +109,19 @@ setInterval(async function () {
     //btns process
     for (let i = 0; i < btns.length; i++) {
       //remove filter on top
-      if (btns[i].getAttribute("data-tag") === "menuToggleDiv" && btns[i].innerText.includes("媒体类型")) {
-        btns[i].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+      if (
+        btns[i].getAttribute("data-tag") === "menuToggleDiv" &&
+        btns[i].innerText.includes("媒体类型")
+      ) {
+        btns[
+          i
+        ].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
       }
       //remove post toolbar
-      if (btns[i].getAttribute("aria-label") === "更多操作" && btns[i].getAttribute("data-tag") === "more-actions-button") {
+      if (
+        btns[i].getAttribute("aria-label") === "更多操作" &&
+        btns[i].getAttribute("data-tag") === "more-actions-button"
+      ) {
         btns[i].parentNode.parentNode.remove();
       }
       //remove expand
@@ -115,14 +130,22 @@ setInterval(async function () {
       }
       //expand content
       else if (btns[i].innerText === "展开") {
-        btns[i].click();
+        setInterval(async function () {
+          btns[i].click();
+        }, 1000);
       }
-/*
-      //click comment
-        else if (btns[i].innerText === "加载更多留言") {
-        btns[i].click();
+      //click loading comment
+      else if (btns[i].innerText === "加载更多留言") {
+        setInterval(async function () {
+          btns[i].click();
+        }, 368);
       }
-*/
+      //click loading reply
+      else if (btns[i].innerText === "加载回复") {
+        setInterval(async function () {
+          btns[i].click();
+        }, 1867);
+      }
       //continue
       else {
         continue;
