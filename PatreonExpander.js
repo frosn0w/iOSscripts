@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.5
+// @version      2.0
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -25,14 +25,39 @@ setInterval(async function () {
     var divs = document.querySelectorAll("div");
     var spans = document.querySelectorAll("span");
     var as = document.querySelectorAll("a");
-    //spans process
+    var navs = document.querySelectorAll("nav");
+    var Current = new Date();
+    const mm = Current.getMonth()+1;
+    const ydd = Current.getDate()-1;
+    const dd = Current.getDate();
+    document.querySelector("header").remove();
     //div process
     for (let j = 0; j < divs.length; j++) {
-      //remove comeent-box
-      if (divs[j].getAttribute("data-tag") === "comment-field-box") {
-        divs[j].parentNode.parentNode.parentNode.remove();
+      //remove subnav
+      if (divs[j].getAttribute("data-pendo-guide") === "creator-page:membership-tab" && divs[j].innerText.includes("我的会籍")) {
+        divs[j].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
       }
-      //remove minitoolbar
+      //remove head img
+      else if (divs[j].getAttribute("data-tag") === "creation-name" && divs[j].innerText.includes("Love & Peace !")) {
+        divs[j].parentNode.parentNode.parentNode.parentNode.remove();
+      }
+      //remove outdated post card
+      else if (divs[j].getAttribute("data-tag") === "post-card" && divs[j].innerText.includes(" 天前")) {
+        divs[j].remove();
+      }
+      //remove main navigation
+      else if (divs[j].getAttribute("id") === "main-app-navigation") {
+        divs[j].remove();
+      }
+      //remove comeent-box
+      else if (divs[j].getAttribute("data-tag") === "comment-field-box") {
+        divs[j].parentNode.parentNode.parentNode.parentNode.remove();
+      }
+      //remove sort on the top
+      else if (divs[j].getAttribute("data-tag") === "sort-posts" && divs[j].innerText.includes("最新文章")) {
+        divs[j].parentNode.remove();
+      }
+      //remove comment toolbar
       else if (divs[j].getAttribute("data-tag") === "comment-actions") {
         divs[j].remove();
       }
@@ -43,21 +68,18 @@ setInterval(async function () {
     }
     //a process
     for (let v = 0; v < as.length; v++) {
-      //remove avatar
-      if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
-        as[v].parentNode.remove();
-      }
-      //remove outdated
-      else if (as[v].innerText.includes(" 天前") || as[v].innerText.includes("昨天")) {
-        as[v].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
-      }
       //format date
-      else if (as[v].innerText.includes(" 小时前") || as[v].innerText.includes(" 分钟前")) {
-        var Current = new Date();
-        const mm = Current.getMonth()+1;
-        const dd = Current.getDate();
+      if (as[v].innerText.includes(" 小时前") || as[v].innerText.includes(" 分钟前")) {
         const TimeString = mm + "月" + dd + "日" ;
         as[v].textContent = TimeString;
+      }
+      else if (as[v].innerText.includes("昨天")) {
+        const TimeString1 = mm + "月" + ydd + "日" ;
+        as[v].textContent = TimeString1;
+      }
+      //remove avatar
+      else if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
+        as[v].parentNode.remove();
       }
       //bold name
       else if (as[v].getAttribute("data-tag") === "commenter-name") {
@@ -77,18 +99,12 @@ setInterval(async function () {
     }
     //btns process
     for (let i = 0; i < btns.length; i++) {
-      //remove toolbar
-      if (btns[i].getAttribute("aria-label") === "更多操作") {
-        btns[i].parentNode.remove();
+      //remove filter on top
+      if (btns[i].getAttribute("data-tag") === "menuToggleDiv" && btns[i].innerText.includes("媒体类型")) {
+        btns[i].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
       }
-      //remove header
-      else if (
-        btns[i].getAttribute("aria-label") === "筛选条件选项" &&
-        btns[i].getAttribute("data-tag") === "menuToggleDiv") {
-          btns[i].parentNode.parentNode.parentNode.parentNode.remove();
-      }
-      //remove load more
-      else if (btns[i].innerText === "加载更多") {
+      //remove post toolbar
+      if (btns[i].getAttribute("aria-label") === "更多操作" && btns[i].getAttribute("data-tag") === "more-actions-button") {
         btns[i].parentNode.parentNode.remove();
       }
       //remove expand
@@ -100,16 +116,11 @@ setInterval(async function () {
         btns[i].click();
         await sleep(375);
       }
-      //click comment
 /*
+      //click comment
         else if (btns[i].innerText === "加载更多留言") {
         btns[i].click();
         await sleep(150);
-      }
-      //click replay
-      else if (btns[i].innerText.includes(" 条回复")) {
-        btns[i].click();
-        await sleep(100);
       }
 */
       //continue
