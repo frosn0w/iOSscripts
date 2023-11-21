@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.1
+// @version      2.2
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -91,16 +91,6 @@ setInterval(async function () {
       else if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
         as[v].parentNode.remove();
       }
-      //bold name
-      else if (as[v].getAttribute("data-tag") === "commenter-name") {
-        if (as[v].innerText === "贝乐斯 Think Analyze Invest") {
-          as[v].style.color = "rgb(245, 31, 0)";
-          as[v].style.fontWeight = "bold";
-        } else {
-          as[v].style.color = "rgb(0, 0, 0)";
-          as[v].style.fontWeight = "bold";
-        }
-      }
       //continue
       else {
         continue;
@@ -118,7 +108,7 @@ setInterval(async function () {
         ].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
       }
       //remove post toolbar
-      if (
+      else if (
         btns[i].getAttribute("aria-label") === "更多操作" &&
         btns[i].getAttribute("data-tag") === "more-actions-button"
       ) {
@@ -132,19 +122,29 @@ setInterval(async function () {
       else if (btns[i].innerText === "展开") {
         setInterval(async function () {
           btns[i].click();
-        }, 1000);
+        }, 877);
       }
       //click loading comment
       else if (btns[i].innerText === "加载更多留言") {
         setInterval(async function () {
           btns[i].click();
-        }, 368);
+        }, 668);
       }
       //click loading reply
       else if (btns[i].innerText === "加载回复") {
         setInterval(async function () {
           btns[i].click();
         }, 1867);
+      }
+      //bold host-name
+      else if (btns[i].getAttribute("data-tag") === "commenter-name") {
+        if (btns[i].innerText === "贝乐斯 Think Analyze Invest") {
+          btns[i].style.color = "rgb(245, 31, 0)";
+          btns[i].style.fontWeight = "bold";
+        } else {
+          btns[i].style.color = "rgb(0, 0, 0)";
+          btns[i].style.fontWeight = "bold";
+        }
       }
       //continue
       else {
