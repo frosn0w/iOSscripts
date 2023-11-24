@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.2
+// @version      2.3
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -32,9 +32,7 @@ setInterval(async function () {
           "creator-page:membership-tab" &&
         divs[j].innerText.includes("我的会籍")
       ) {
-        divs[
-          j
-        ].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+        divs[j].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
       }
       //remove head img
       else if (
@@ -101,11 +99,9 @@ setInterval(async function () {
       //remove filter on top
       if (
         btns[i].getAttribute("data-tag") === "menuToggleDiv" &&
-        btns[i].innerText.includes("媒体类型")
+        btns[i].getAttribute("aria-label") === "Sort posts by age"
       ) {
-        btns[
-          i
-        ].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+        btns[i].parentNode.parentNode.parentNode.remove();
       }
       //remove post toolbar
       else if (
@@ -122,19 +118,19 @@ setInterval(async function () {
       else if (btns[i].innerText === "展开") {
         setInterval(async function () {
           btns[i].click();
-        }, 877);
+        }, 375);
       }
       //click loading comment
       else if (btns[i].innerText === "加载更多留言") {
         setInterval(async function () {
           btns[i].click();
-        }, 668);
+        }, 1288);
       }
       //click loading reply
       else if (btns[i].innerText === "加载回复") {
         setInterval(async function () {
           btns[i].click();
-        }, 1867);
+        }, 1688);
       }
       //bold host-name
       else if (btns[i].getAttribute("data-tag") === "commenter-name") {
