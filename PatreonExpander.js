@@ -52,7 +52,7 @@ setInterval(async function () {
       else if (divs[j].getAttribute("id") === "main-app-navigation") {
         divs[j].remove();
       }
-      //remove comeent-box
+      //remove comment-box
       else if (divs[j].getAttribute("data-tag") === "comment-field-box") {
         divs[j].parentNode.parentNode.parentNode.remove();
       }
@@ -62,6 +62,10 @@ setInterval(async function () {
         divs[j].innerText.includes("最新文章")
       ) {
         divs[j].parentNode.remove();
+      }
+      //remove filter
+      else if (divs[j].getAttribute("data-tag") === "search-input-box") {
+        divs[j].parentNode.parentNode.parentNode.remove();
       }
       //remove comment toolbar
       else if (divs[j].getAttribute("data-tag") === "comment-actions") {
@@ -96,15 +100,8 @@ setInterval(async function () {
     }
     //btns process
     for (let i = 0; i < btns.length; i++) {
-      //remove filter on top
-      if (
-        btns[i].getAttribute("data-tag") === "menuToggleDiv" &&
-        btns[i].getAttribute("aria-label") === "Sort posts by age"
-      ) {
-        btns[i].parentNode.parentNode.parentNode.remove();
-      }
       //remove post toolbar
-      else if (
+      if (
         btns[i].getAttribute("aria-label") === "更多操作" &&
         btns[i].getAttribute("data-tag") === "more-actions-button"
       ) {
@@ -118,7 +115,7 @@ setInterval(async function () {
       else if (btns[i].innerText === "展开") {
         setInterval(async function () {
           btns[i].click();
-        }, 375);
+        }, 2888);
       }
       //click loading comment
       else if (btns[i].innerText === "加载更多留言") {
