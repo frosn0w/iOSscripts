@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.3
+// @version      2.4
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -71,6 +71,11 @@ setInterval(async function () {
       else if (divs[j].getAttribute("data-tag") === "comment-actions") {
         divs[j].remove();
       }
+      //boarder the padding
+      else if (divs[j].getAttribute("data-tag") === "post-stream-container") {
+        divs[j].parentNode.style.setProperty("padding-left", "4px");
+        divs[j].parentNode.style.setProperty("padding-right", "4px");
+      }
       //continue
       else {
         continue;
@@ -121,13 +126,13 @@ setInterval(async function () {
       else if (btns[i].innerText === "加载更多留言") {
         setInterval(async function () {
           btns[i].click();
-        }, 1288);
+        }, 1688);
       }
       //click loading reply
       else if (btns[i].innerText === "加载回复") {
         setInterval(async function () {
           btns[i].click();
-        }, 1688);
+        }, 1888);
       }
       //bold host-name
       else if (btns[i].getAttribute("data-tag") === "commenter-name") {
@@ -146,4 +151,4 @@ setInterval(async function () {
     }
     close++;
   }
-}, 2500);
+}, 2888);
