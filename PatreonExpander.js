@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.4
+// @version      2.5
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -28,8 +28,8 @@ setInterval(async function () {
     for (let j = 0; j < divs.length; j++) {
       //remove subnav
       if (
-        divs[j].getAttribute("data-pendo-guide") ===
-          "creator-page:membership-tab" &&
+        divs[j].getAttribute("aria-expanded") ===
+          "false" &&
         divs[j].innerText.includes("我的会籍")
       ) {
         divs[j].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
