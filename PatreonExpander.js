@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.5
+// @version      2.6
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -28,8 +28,7 @@ setInterval(async function () {
     for (let j = 0; j < divs.length; j++) {
       //remove subnav
       if (
-        divs[j].getAttribute("aria-expanded") ===
-          "false" &&
+        divs[j].getAttribute("aria-expanded") === "false" &&
         divs[j].innerText.includes("我的会籍")
       ) {
         divs[j].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
@@ -41,10 +40,18 @@ setInterval(async function () {
       ) {
         divs[j].parentNode.parentNode.parentNode.parentNode.remove();
       }
-      //remove outdated post card
+      //remove outdated post card - "ago" format
       else if (
         divs[j].getAttribute("data-tag") === "post-card" &&
         divs[j].innerText.includes(" 天前")
+      ) {
+        divs[j].remove();
+      }
+      //remove outdated post card - "date" format
+      else if (
+        divs[j].getAttribute("data-tag") === "post-card" &&
+        divs[j].innerText.includes(mm+"月") &&
+        divs[j].innerText.split(mm+"月")[1].split("日")[0] < ydd
       ) {
         divs[j].remove();
       }
@@ -55,6 +62,13 @@ setInterval(async function () {
       //remove comment-box
       else if (divs[j].getAttribute("data-tag") === "comment-field-box") {
         divs[j].parentNode.parentNode.parentNode.remove();
+      }
+      //remove deleted row
+      else if (
+        divs[j].getAttribute("data-tag") === "comment-body" &&
+        divs[j].innerText.includes("此留言已被删除。")
+      ) {
+        divs[j].parentNode.parentNode.remove();
       }
       //remove sort on the top
       else if (
@@ -110,7 +124,7 @@ setInterval(async function () {
         btns[i].getAttribute("aria-label") === "更多操作" &&
         btns[i].getAttribute("data-tag") === "more-actions-button"
       ) {
-        btns[i].parentNode.parentNode.remove();
+        btns[i].parentNode.parentNode.parentNode.remove();
       }
       //remove expand
       else if (btns[i].innerText === "收起") {
