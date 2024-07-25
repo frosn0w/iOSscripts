@@ -48,6 +48,14 @@ setInterval(async function () {
       else if (divs[j].getAttribute("id") === "main-app-navigation") {
         divs[j].remove();
       }
+      //remove outdated post card - "date" format
+      else if (
+        divs[j].getAttribute("data-tag") === "post-card" &&
+        divs[j].innerText.includes(mm+"月") &&
+        divs[j].innerText.split(mm+"月")[0] < mm
+      ) {
+        divs[j].remove();
+      }
       //remove comment-box
       else if (divs[j].getAttribute("data-tag") === "comment-field-box") {
         divs[j].parentNode.parentNode.parentNode.remove();
