@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.6
+// @version      2.7
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -119,15 +119,20 @@ setInterval(async function () {
     }
     //btns process
     for (let i = 0; i < btns.length; i++) {
-      //remove post toolbar
+      //remove post toolbar (including the "share" icon)
       if (
         btns[i].getAttribute("aria-label") === "更多操作" &&
         btns[i].getAttribute("data-tag") === "more-actions-button"
       ) {
-        btns[i].parentNode.parentNode.parentNode.remove();
+        btns[i].parentNode.parentNode.parentNode.parentNode.remove();
       }
       //remove expand
+      //post card expand
       else if (btns[i].innerText === "收起") {
+        btns[i].parentNode.remove();
+      }
+      //replay card expand
+      else if (btns[i].innerText === "收起回复") {
         btns[i].parentNode.remove();
       }
       //expand content
@@ -148,16 +153,19 @@ setInterval(async function () {
           btns[i].click();
         }, 1888);
       }
-      //bold host-name
+      //highlight host-name and bold others
+      /*
       else if (btns[i].getAttribute("data-tag") === "commenter-name") {
         if (btns[i].innerText === "贝乐斯 Think Analyze Invest") {
           btns[i].style.color = "rgb(245, 31, 0)";
           btns[i].style.fontWeight = "bold";
-        } else {
+        }
+        else {
           btns[i].style.color = "rgb(0, 0, 0)";
           btns[i].style.fontWeight = "bold";
         }
       }
+      */
       //continue
       else {
         continue;
