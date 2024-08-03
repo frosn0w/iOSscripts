@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.7
+// @version      2.8
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -84,6 +84,10 @@ setInterval(async function () {
       //remove comment toolbar
       else if (divs[j].getAttribute("data-tag") === "comment-actions") {
         divs[j].remove();
+      }
+      //remove line
+      else if (divs[j].getAttribute("data-tag") === "comment-row") {
+        divs[j].parentNode.style.setProperty("--global-bg-base-hover", "#e2e8f000");
       }
       //boarder the padding
       else if (divs[j].getAttribute("data-tag") === "post-stream-container") {
