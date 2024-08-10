@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.8
+// @version      2.9
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
 // @run-at       document-end
-// @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAA3tJREFUeF7tmj1s00AUx/8vbjdaOy1MMMDCQBlggoEBJMRE2ZqNBSEisdRRO7A1nVhaxSxIRagDYzu2E0KiAwNMdKAMLDDABG3swtamD10hJRjbd44T+YgvY+757r3ffbyPO0LBf1Rw+2EAmBVQcAJmCxR8AZhDUHkLfJ8ZO9c6aN0hxhUGLum4cgh4w4RXVqm1PLL4472KjkoAAteZY3BdpUNdZBg8X/Z2pTpLAXyrjZ8c4v3PuhiWRo99Gjp1vLH9JekbKYDAHW0wyE0zsC6yBPZsb7eWCYDv2m8BXNDFqJR6bDpecDErAE45qFbijhckrnLpFvBd2wDQakpTKtP3FcCg+bLnJ7qbpuucLoGXGLihoj8Bzw9A1bLnf0qSb7qjdQLNJcn0HYBsgLZyvmvfA7CkAgBA1fGCJyqysi0q0y/zGRAeoOk6V8OKE/MJEFZUDDqSYVSY6Gv4m7Lnb3T+px0AoZxfs1fAmEplsEyYsOo0gkpYTBsAYuY7Z6enEELGd46lFQAivt85Sz2BEDJe9MlMj9uw9QIAfokIhbveDjF9MeiavgDEJu0FhIQ+9AcQAaE57awR8U3ZWffrU16zvd1bRy40dKhqBYBBZ0TAEunnO2ax2zgg5hw5jBNEgEXgj7kGQiJqY8bTOD/PTOsEftZNHEDEtxk0GWkgo0KEu7Losu+BkMqSzlPGADDpsKkHmIKIKYklEMicDud5wquMbbyA8QLGC/TXC4jEhUHrsfU+wioYL1LUA9tbuwrC9YRUusrMk0SUmGD1/QxokXV+vLGz5U/bU//E+53JUFR73CnGqDiPgtXY8trv9sMb61ZrK9dkqE1YlKlIFETavyw1Acm3WqXDkQCyGK8AUG8AvTBeAkFfAEUviha6LP7XbU0RL0baACKvxsBnu4kDGPThv7wai/LLkXGCQhwgS3hyvxhRuR7fro1NDPH+w9gCZ8hKAq2VrNKDkcWdxKduTdepEzjf63HZDOXd3vdQOG8DZeMbAFnrAYFrv9b1aaxs9sXTWdsLLmerCdbsBTBmZINp2U5YdBrBbCYA27VjExZb77Q0UKKUZVkTMk8iLYqKMVTcjW6ACFS3PX9eppcSANGJeDQ9zHuzDBKPoHR9OrtJ4I09Gl6QPZL+k3DKEA14u/IKGFQOBsCgzqyqXWYFqJIaVDmzAgZ1ZlXt+gnhrHFfaCYwZQAAAABJRU5ErkJggg==
+// @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MzYgNDc2Ij48dGl0bGU+UGF0cmVvbiBsb2dvPC90aXRsZT48cGF0aCBkYXRhLWZpbGw9IjEiIGQ9Ik00MzYgMTQzYy0uMDg0LTYwLjc3OC00Ny41Ny0xMTAuNTkxLTEwMy4yODUtMTI4LjU2NUMyNjMuNTI4LTcuODg0IDE3Mi4yNzktNC42NDkgMTA2LjIxNCAyNi40MjQgMjYuMTQyIDY0LjA4OS45ODggMTQ2LjU5Ni4wNTEgMjI4Ljg4M2MtLjc3IDY3LjY1MyA2LjAwNCAyNDUuODQxIDEwNi44MyAyNDcuMTEgNzQuOTE3Ljk0OCA4Ni4wNzItOTUuMjc5IDEyMC43MzctMTQxLjYyMyAyNC42NjItMzIuOTcyIDU2LjQxNy00Mi4yODUgOTUuNTA3LTUxLjkyOUMzOTAuMzA5IDI2NS44NjUgNDM2LjA5NyAyMTMuMDExIDQzNiAxNDNaIj48L3BhdGg+PC9zdmc+
 // @grant        none
 // @license MIT
 // ==/UserScript==
@@ -19,75 +19,97 @@ setInterval(async function () {
     var divs = document.querySelectorAll("div");
     var spans = document.querySelectorAll("span");
     var as = document.querySelectorAll("a");
-    var navs = document.querySelectorAll("nav");
     var Current = new Date();
-    const mm = Current.getMonth() + 1;
-    const ydd = Current.getDate() - 1;
     const dd = Current.getDate();
-    //div process
-    for (let j = 0; j < divs.length; j++) {
-      //remove subnav
+    const mm = Current.getMonth() + 1;
+    const lmm = Current.getMonth();
+    const ldd = Current.getDate() - 1;
+    //a-tag process
+    for (let v = 0; v < as.length; v++) {
+      //format date
       if (
+        as[v].innerText.includes(" 小时前") ||
+        as[v].innerText.includes(" 分钟前")
+      ) {
+        const TimeString = mm + "月" + dd + "日";
+        as[v].textContent = TimeString;
+      } else if (as[v].innerText.includes("昨天")) {
+        const TimeString1 = mm + "月" + ldd + "日";
+        as[v].textContent = TimeString1;
+      }
+      //remove outdated post card
+      else if (
+        as[v].getAttribute("data-tag") === "post-published-at" &&
+        (as[v].innerText.includes(" 天前") ||
+          (as[v].innerText.includes(mm + "月") &&
+            as[v].innerText.split(mm + "月")[1].split("日")[0] < ldd) ||
+          (as[v].innerText.includes(mm + "月") &&
+            as[v].innerText.split(mm + "月")[0] === lmm))
+      ) {
+        as[v].closest("li").remove(); //find closes <li> element and remove
+      }
+      //remove avatar
+      else if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
+        as[v].parentNode.remove();
+      }
+      //continue
+      else {
+        continue;
+      }
+    }
+    //div-tag process
+    for (let j = 0; j < divs.length; j++) {
+      //remove head-main navigation
+      if (divs[j].getAttribute("id") === "main-app-navigation") {
+        divs[j].remove();
+      }
+      //remove head-subnav
+      else if (
         divs[j].getAttribute("aria-expanded") === "false" &&
         divs[j].innerText.includes("我的会籍")
       ) {
-        divs[j].parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.remove();
+        divs[j].closest("nav").parentNode.parentNode.parentNode.remove();
       }
-      //remove head img
+      //remove head-imgaine
       else if (
         divs[j].getAttribute("data-tag") === "creation-name" &&
         divs[j].innerText.includes("Love & Peace !")
       ) {
-        divs[j].parentNode.parentNode.parentNode.parentNode.remove();
+        divs[j].parentNode.parentNode.parentNode.parentNode.remove(); //find closes <li> element and remove
       }
-      //remove outdated post card - "ago" format
-      else if (
-        divs[j].getAttribute("data-tag") === "post-card" &&
-        divs[j].innerText.includes(" 天前")
-      ) {
-        divs[j].remove();
-      }
-      //remove outdated post card - "date" format
-      else if (
-        divs[j].getAttribute("data-tag") === "post-card" &&
-        divs[j].innerText.includes(mm+"月") &&
-        divs[j].innerText.split(mm+"月")[1].split("日")[0] < ydd
-      ) {
-        divs[j].remove();
-      }
-      //remove main navigation
-      else if (divs[j].getAttribute("id") === "main-app-navigation") {
-        divs[j].remove();
-      }
-      //remove comment-box
-      else if (divs[j].getAttribute("data-tag") === "comment-field-box") {
+      //remove head-searchbox
+      else if (divs[j].getAttribute("data-tag") === "search-input-box") {
         divs[j].parentNode.parentNode.parentNode.remove();
       }
-      //remove deleted row
+      //remove postcard-hiden button named "new feature"
+      else if (divs[j].getAttribute("data-tag") === "chip-container") {
+        divs[j].parentNode.parentNode.remove();
+      }
+      //remove postcard-postcard toolbar(like,comment,share,more)
+      else if (divs[j].getAttribute("data-tag") === "post-details") {
+        divs[j].remove();
+      }
+      //remove comment-deleted row
       else if (
         divs[j].getAttribute("data-tag") === "comment-body" &&
         divs[j].innerText.includes("此留言已被删除。")
       ) {
         divs[j].parentNode.parentNode.remove();
       }
-      //remove sort on the top
-      else if (
-        divs[j].getAttribute("data-tag") === "sort-posts" &&
-        divs[j].innerText.includes("最新文章")
-      ) {
-        divs[j].parentNode.remove();
-      }
-      //remove filter
-      else if (divs[j].getAttribute("data-tag") === "search-input-box") {
-        divs[j].parentNode.parentNode.parentNode.remove();
-      }
-      //remove comment toolbar
+      //remove comment-toolbar
       else if (divs[j].getAttribute("data-tag") === "comment-actions") {
         divs[j].remove();
       }
+      //remove comment-comment box
+      else if (divs[j].getAttribute("data-tag") === "comment-field-box") {
+        divs[j].parentNode.parentNode.parentNode.remove();
+      }
       //remove line
       else if (divs[j].getAttribute("data-tag") === "comment-row") {
-        divs[j].parentNode.style.setProperty("--global-bg-base-hover", "#e2e8f000");
+        divs[j].parentNode.style.setProperty(
+          "--global-bg-base-hover",
+          "#e2e8f000"
+        );
       }
       //boarder the padding
       else if (divs[j].getAttribute("data-tag") === "post-stream-container") {
@@ -99,77 +121,41 @@ setInterval(async function () {
         continue;
       }
     }
-    //a process
-    for (let v = 0; v < as.length; v++) {
-      //format date
-      if (
-        as[v].innerText.includes(" 小时前") ||
-        as[v].innerText.includes(" 分钟前")
-      ) {
-        const TimeString = mm + "月" + dd + "日";
-        as[v].textContent = TimeString;
-      } else if (as[v].innerText.includes("昨天")) {
-        const TimeString1 = mm + "月" + ydd + "日";
-        as[v].textContent = TimeString1;
-      }
-      //remove avatar
-      else if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
-        as[v].parentNode.remove();
-      }
-      //continue
-      else {
-        continue;
-      }
-    }
-    //btns process
+    //button-tag process
     for (let i = 0; i < btns.length; i++) {
-      //remove post toolbar (including the "share" icon)
-      if (
-        btns[i].getAttribute("aria-label") === "更多操作" &&
-        btns[i].getAttribute("data-tag") === "more-actions-button"
-      ) {
-        btns[i].parentNode.parentNode.parentNode.parentNode.remove();
-      }
-      //remove expand
-      //post card expand
-      else if (btns[i].innerText === "收起") {
+      //remove "Collapse" button
+      if (btns[i].innerText === "收起") {
         btns[i].parentNode.remove();
       }
-      //replay card expand
+      //remove “Collapse Replay” button
       else if (btns[i].innerText === "收起回复") {
         btns[i].parentNode.remove();
       }
-      //expand content
+      //click to expand contents
       else if (btns[i].innerText === "展开") {
         setInterval(async function () {
           btns[i].click();
         }, 2888);
       }
-      //click loading comment
+      //click to load comments
       else if (btns[i].innerText === "加载更多留言") {
         setInterval(async function () {
           btns[i].click();
         }, 1688);
       }
-      //click loading reply
+      //click to load replies
       else if (btns[i].innerText === "加载回复") {
         setInterval(async function () {
           btns[i].click();
         }, 1888);
       }
-      //highlight host-name and bold others
-      /*
-      else if (btns[i].getAttribute("data-tag") === "commenter-name") {
-        if (btns[i].innerText === "贝乐斯 Think Analyze Invest") {
-          btns[i].style.color = "rgb(245, 31, 0)";
-          btns[i].style.fontWeight = "bold";
-        }
-        else {
-          btns[i].style.color = "rgb(0, 0, 0)";
-          btns[i].style.fontWeight = "bold";
-        }
+      //comment-remove text and keep author tag
+      else if (
+        btns[i].getAttribute("data-tag") === "commenter-name" &&
+        btns[i].innerText === "贝乐斯 Think Analyze Invest"
+      ) {
+        btns[i].remove();
       }
-      */
       //continue
       else {
         continue;
