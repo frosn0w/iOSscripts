@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.9
+// @version      2.9.1
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -46,7 +46,7 @@ setInterval(async function () {
           (as[v].innerText.includes(mm + "月") &&
             as[v].innerText.split(mm + "月")[0] === lmm))
       ) {
-        as[v].closest("li").remove(); //find closes <li> element and remove
+        as[v].closest('div[data-tag = "post-card"]').parentNode.parentNode.remove(); //find closest <div> with data-tag = post-card
       }
       //remove avatar
       else if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
@@ -75,11 +75,11 @@ setInterval(async function () {
         divs[j].getAttribute("data-tag") === "creation-name" &&
         divs[j].innerText.includes("Love & Peace !")
       ) {
-        divs[j].parentNode.parentNode.parentNode.parentNode.remove(); //find closes <li> element and remove
+        divs[j].parentNode.parentNode.parentNode.parentNode.remove();
       }
       //remove head-searchbox
       else if (divs[j].getAttribute("data-tag") === "search-input-box") {
-        divs[j].parentNode.parentNode.parentNode.remove();
+        divs[j].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
       }
       //remove postcard-hiden button named "new feature"
       else if (divs[j].getAttribute("data-tag") === "chip-container") {
