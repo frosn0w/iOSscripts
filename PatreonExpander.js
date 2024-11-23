@@ -52,6 +52,10 @@ setInterval(async function () {
       else if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
         as[v].parentNode.remove();
       }
+      //remove head-giftbox
+      else if (as[v].getAttribute("href") === "https://www.patreon.com/user/gift?u=80821958") {
+        as[v].parentNode.parentNode.parentNode.parentNode.remove();
+      }
       //continue
       else {
         continue;
@@ -77,9 +81,6 @@ setInterval(async function () {
       ) {
         divs[j].parentNode.parentNode.parentNode.parentNode.remove();
       }
-      //remove head-gift box
-      else if divs[j].innerText.includes("带您的亲朋好友领略 贝乐斯 Think Analyze Invest 的世界") {
-        divs[j].parentNode.parentNode.parentNode.remove();
       //remove head-searchbox
       else if (divs[j].getAttribute("data-tag") === "search-input-box") {
         divs[j].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
