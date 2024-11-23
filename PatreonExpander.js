@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.9.1
+// @version      2.24.1123
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -77,6 +77,9 @@ setInterval(async function () {
       ) {
         divs[j].parentNode.parentNode.parentNode.parentNode.remove();
       }
+      //remove head-gift box
+      else if divs[j].innerText.includes("带您的亲朋好友领略 贝乐斯 Think Analyze Invest 的世界") {
+        divs[j].parentNode.parentNode.parentNode.remove();
       //remove head-searchbox
       else if (divs[j].getAttribute("data-tag") === "search-input-box") {
         divs[j].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
