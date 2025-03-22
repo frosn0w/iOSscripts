@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.24.1123
+// @version      2.25.323
 // @description  Expand content and comments.
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -10,161 +10,140 @@
 // @grant        none
 // @license MIT
 // ==/UserScript==
-var close = 1;
-document.querySelector("header").remove();
-setInterval(async function () {
-  "use strict";
-  if (close < 50) {
-    var btns = document.querySelectorAll("button");
-    var divs = document.querySelectorAll("div");
-    var spans = document.querySelectorAll("span");
-    var as = document.querySelectorAll("a");
-    var Current = new Date();
-    const dd = Current.getDate();
-    const mm = Current.getMonth() + 1;
-    const lmm = Current.getMonth();
-    const ldd = Current.getDate() - 1;
-    //a-tag process
-    for (let v = 0; v < as.length; v++) {
-      //format date
-      if (
-        as[v].innerText.includes(" 小时前") ||
-        as[v].innerText.includes(" 分钟前")
-      ) {
-        const TimeString = mm + "月" + dd + "日";
-        as[v].textContent = TimeString;
-      } else if (as[v].innerText.includes("昨天")) {
-        const TimeString1 = mm + "月" + ldd + "日";
-        as[v].textContent = TimeString1;
-      }
-      //remove outdated post card
-      else if (
-        as[v].getAttribute("data-tag") === "post-published-at" &&
-        (as[v].innerText.includes(" 天前") ||
-          (as[v].innerText.includes(mm + "月") &&
-            as[v].innerText.split(mm + "月")[1].split("日")[0] < ldd) ||
-          (as[v].innerText.includes(mm + "月") &&
-            as[v].innerText.split(mm + "月")[0] === lmm))
-      ) {
-        as[v].closest('div[data-tag = "post-card"]').parentNode.parentNode.remove(); //find closest <div> with data-tag = post-card
-      }
-      //remove avatar
-      else if (as[v].getAttribute("data-tag") === "comment-avatar-wrapper") {
-        as[v].parentNode.remove();
-      }
-      //remove head-giftbox
-      else if (as[v].getAttribute("href") === "https://www.patreon.com/user/gift?u=80821958") {
-        as[v].parentNode.parentNode.parentNode.parentNode.remove();
-      }
-      //continue
-      else {
-        continue;
-      }
-    }
-    //div-tag process
-    for (let j = 0; j < divs.length; j++) {
-      //remove head-main navigation
-      if (divs[j].getAttribute("id") === "main-app-navigation") {
-        divs[j].remove();
-      }
-      //remove head-subnav
-      else if (
-        divs[j].getAttribute("aria-expanded") === "false" &&
-        divs[j].innerText.includes("我的会籍")
-      ) {
-        divs[j].closest("nav").parentNode.parentNode.parentNode.remove();
-      }
-      //remove head-imgaine
-      else if (
-        divs[j].getAttribute("data-tag") === "creation-name" &&
-        divs[j].innerText.includes("Love & Peace !")
-      ) {
-        divs[j].parentNode.parentNode.parentNode.parentNode.remove();
-      }
-      //remove head-searchbox
-      else if (divs[j].getAttribute("data-tag") === "search-input-box") {
-        divs[j].parentNode.parentNode.parentNode.parentNode.parentNode.remove();
-      }
-      //remove postcard-hiden button named "new feature"
-      else if (divs[j].getAttribute("data-tag") === "chip-container") {
-        divs[j].parentNode.parentNode.remove();
-      }
-      //remove postcard-postcard toolbar(like,comment,share,more)
-      else if (divs[j].getAttribute("data-tag") === "post-details") {
-        divs[j].remove();
-      }
-      //remove comment-deleted row
-      else if (
-        divs[j].getAttribute("data-tag") === "comment-body" &&
-        divs[j].innerText.includes("此留言已被删除。")
-      ) {
-        divs[j].parentNode.parentNode.remove();
-      }
-      //remove comment-toolbar
-      else if (divs[j].getAttribute("data-tag") === "comment-actions") {
-        divs[j].remove();
-      }
-      //remove comment-comment box
-      else if (divs[j].getAttribute("data-tag") === "comment-field-box") {
-        divs[j].parentNode.parentNode.parentNode.remove();
-      }
-      //remove line
-      else if (divs[j].getAttribute("data-tag") === "comment-row") {
-        divs[j].parentNode.style.setProperty(
-          "--global-bg-base-hover",
-          "#e2e8f000"
-        );
-      }
-      //boarder the padding
-      else if (divs[j].getAttribute("data-tag") === "post-stream-container") {
-        divs[j].parentNode.style.setProperty("padding-left", "4px");
-        divs[j].parentNode.style.setProperty("padding-right", "4px");
-      }
-      //continue
-      else {
-        continue;
-      }
-    }
-    //button-tag process
-    for (let i = 0; i < btns.length; i++) {
-      //remove "Collapse" button
-      if (btns[i].innerText === "收起") {
-        btns[i].parentNode.remove();
-      }
-      //remove “Collapse Replay” button
-      else if (btns[i].innerText === "收起回复") {
-        btns[i].parentNode.remove();
-      }
-      //click to expand contents
-      else if (btns[i].innerText === "展开") {
-        setInterval(async function () {
-          btns[i].click();
-        }, 2888);
-      }
-      //click to load comments
-      else if (btns[i].innerText === "加载更多留言") {
-        setInterval(async function () {
-          btns[i].click();
-        }, 1688);
-      }
-      //click to load replies
-      else if (btns[i].innerText === "加载回复") {
-        setInterval(async function () {
-          btns[i].click();
-        }, 1888);
-      }
-      //comment-remove text and keep author tag
-      else if (
-        btns[i].getAttribute("data-tag") === "commenter-name" &&
-        btns[i].innerText === "贝乐斯 Think Analyze Invest"
-      ) {
-        btns[i].remove();
-      }
-      //continue
-      else {
-        continue;
-      }
-    }
-    close++;
+
+let executionCount = 1;
+const INTERVAL_DELAY = 2888;
+
+// 安全移除函数（提升到全局作用域）
+const safeRemove = (element, selector = null, levels = 0) => {
+  let target = selector ? element.closest(selector) : element;
+  for (let i = 0; target && i < levels; i++) {
+    target = target.parentNode;
   }
-}, 2888);
+  target?.remove();
+};
+
+setInterval(async () => {
+  "use strict";
+  if (executionCount >= 50) return;
+
+  const currentDate = new Date();
+  const currentDay = currentDate.getDate();
+  const currentMonth = currentDate.getMonth() + 1;
+  const lastMonth = currentDate.getMonth();
+  const yesterday = currentDate.getDate() - 1;
+
+  // 优化选择器性能
+  const processElements = (selector, processor) => {
+    document.querySelectorAll(selector).forEach(processor);
+  };
+  // 处理 p 标签样式
+  processElements("p", (element) => {
+    element.style.setProperty("--global-lineHeights-body", "1.2");
+    element.style.setProperty("margin", "8px 0", "important");
+  });
+  // 处理 ul 标签样式
+  processElements("ul", (element) => {
+    element.style.setProperty("margin", "4px 0", "important");
+  });
+  // 处理 a 标签
+  processElements("a", (element) => {
+    const text = element.innerText;
+    const dataTag = element.getAttribute("data-tag");
+    // 格式化日期
+    if (text.includes(" 小时前") || text.includes(" 分钟前")) {
+      element.textContent = `${currentMonth}月${currentDay}日`;
+    } else if (text.includes("昨天")) {
+      element.textContent = `${currentMonth}月${yesterday}日`;
+    }
+
+    if (dataTag === "post-published-at") {
+      if (
+        text.includes(" 天前") ||
+        (text.includes(`${currentMonth}月`) &&
+          parseInt(text.split(`${currentMonth}月`)[1]) < yesterday) ||
+        (text.includes(`${currentMonth}月`) &&
+          parseInt(text.split(`${currentMonth}月`)[0]) === lastMonth)
+      ) {
+        safeRemove(element, 'div[data-tag="post-card"]', 2);
+      }
+    } else if (text.includes("Skip navigation")) {
+      element.remove();
+    } else if (dataTag === "comment-avatar-wrapper") {
+      element.parentNode?.remove();
+    } else if (
+      element.href === "https://www.patreon.com/user/gift?u=80821958"
+    ) {
+      safeRemove(element, null, 4);
+    }
+  });
+
+  // 处理 div 标签
+  processElements("div", (element) => {
+    const dataTag = element.getAttribute("data-tag");
+    if (element.id === "main-app-navigation") {
+      element.parentNode?.remove();
+    } else if (
+      element.ariaExpanded === "false" &&
+      element.innerText.includes("我的会籍")
+    ) {
+      element.closest("nav")?.parentNode?.parentNode?.parentNode?.remove();
+    } else if (
+      dataTag === "creation-name" &&
+      element.innerText.includes("Love & Peace !")
+    ) {
+      safeRemove(element, null, 4);
+    } else if (dataTag === "search-input-box") {
+      safeRemove(element, null, 5);
+    } else if (dataTag === "chip-container") {
+      element.parentNode?.parentNode?.remove();
+    } else if (dataTag === "post-details") {
+      element.remove();
+    } else if (
+      dataTag === "comment-body" &&
+      element.innerText.includes("此留言已被删除。")
+    ) {
+      element.parentNode?.parentNode?.remove();
+    } else if (dataTag === "comment-actions") {
+      element.remove();
+    } else if (dataTag === "comment-field-box") {
+      safeRemove(element, null, 3);
+    } else if (dataTag === "comment-row") {
+      element.parentNode?.style.setProperty(
+        "--global-bg-base-hover",
+        "#e2e8f000"
+      );
+    } else if (dataTag === "post-stream-container") {
+      element.parentNode?.style.setProperty("padding-left", "4px");
+      element.parentNode?.style.setProperty("padding-right", "4px");
+    }
+  });
+
+  // 处理按钮
+  processElements("button", (button) => {
+    const text = button.innerText;
+    const clickHandler = () => button.click();
+    //remove header
+    if (
+      button.ariaExpanded === "false" &&
+      button.getAttribute("aria-label") === "打开导航"
+    ) {
+      button.closest("header")?.remove();
+    } else if (["收起", "收起回复"].includes(text)) {
+      button.parentNode?.remove();
+    } else if (text === "展开") {
+      setInterval(clickHandler, 2888);
+    } else if (text === "加载更多留言") {
+      setInterval(clickHandler, 1688);
+    } else if (text === "加载回复") {
+      setInterval(clickHandler, 1888);
+    } else if (
+      button.getAttribute("data-tag") === "commenter-name" &&
+      text === "贝乐斯 Think Analyze Invest"
+    ) {
+      button.remove();
+    }
+  });
+
+  executionCount++;
+}, INTERVAL_DELAY);
