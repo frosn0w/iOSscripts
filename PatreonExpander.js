@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.25.323
-// @description  Expand content and comments.
+// @version      2.25.324
+// @description  Simplify elements, expand contents and comments
 // @author       frosn0w
 // @match        *://*.patreon.com/*
 // @run-at       document-end
@@ -13,20 +13,51 @@
 
 let executionCount = 1;
 const INTERVAL_DELAY = 2888;
-
-// 安全移除函数（提升到全局作用域）
-const safeRemove = (element, selector = null, levels = 0) => {
-  let target = selector ? element.closest(selector) : element;
-  for (let i = 0; target && i < levels; i++) {
-    target = target.parentNode;
+// 注入全局样式
+const style = document.createElement("style");
+style.textContent = `
+  p { line-height: 1.4 !important; }
+  div[data-tag="comment-row"]::before {
+    width: 0px !important;
   }
-  target?.remove();
+  div[data-tag="comment-row"]::after {
+    width: 0px !important;
+    border-left: 0 !important;
+  }
+`;
+document.head.appendChild(style);
+
+// 安全移除函数（全局作用域）
+const safeRemove = (element, selector = null, levels = 0, onBeforeRemove) => {
+  if (!element || !(element instanceof Element)) return false;
+
+  try {
+    let target = selector ? element.closest(selector) : element;
+    if (!target) return false;
+    // 向上遍历父节点
+    while (target && levels > 0) {
+      target = target.parentElement;
+      levels--;
+    }
+    // 元素或元素父级不存在返回false
+    if (!target || !target.parentElement) return false;
+    // 允许在移除前执行自定义逻辑（如清理事件监听器），避免内存泄漏
+    if (typeof onBeforeRemove === "function") {
+      onBeforeRemove(target);
+    }
+    // 移除元素
+    target.remove();
+    return true;
+  } catch (error) {
+    console.error("safeRemove error:", error);
+    return false;
+  }
 };
 
 setInterval(async () => {
   "use strict";
   if (executionCount >= 50) return;
-
+  // 获取当前日期
   const currentDate = new Date();
   const currentDay = currentDate.getDate();
   const currentMonth = currentDate.getMonth() + 1;
@@ -37,14 +68,24 @@ setInterval(async () => {
   const processElements = (selector, processor) => {
     document.querySelectorAll(selector).forEach(processor);
   };
-  // 处理 p 标签样式
-  processElements("p", (element) => {
-    element.style.setProperty("--global-lineHeights-body", "1.2");
-    element.style.setProperty("margin", "8px 0", "important");
+  // 缩短正文部分的 p 标签行距
+  processElements("span", (element) => {
+    if (element.getAttribute("data-tag") === "post-title") {
+      element.parentNode?.parentNode?.parentNode?.parentNode?.classList.add(
+        "TAI-body-div"
+      );
+      const style = document.createElement("style");
+      style.textContent = `
+      .TAI-body-div p {
+        margin: 8px 0 !important;
+      }
+    `;
+      document.head.appendChild(style);
+    }
   });
   // 处理 ul 标签样式
   processElements("ul", (element) => {
-    element.style.setProperty("margin", "4px 0", "important");
+    element.style.setProperty("margin", "6px 0", "important");
   });
   // 处理 a 标签
   processElements("a", (element) => {
@@ -56,7 +97,7 @@ setInterval(async () => {
     } else if (text.includes("昨天")) {
       element.textContent = `${currentMonth}月${yesterday}日`;
     }
-
+    // 删除过期的内容
     if (dataTag === "post-published-at") {
       if (
         text.includes(" 天前") ||
@@ -77,17 +118,16 @@ setInterval(async () => {
       safeRemove(element, null, 4);
     }
   });
-
   // 处理 div 标签
   processElements("div", (element) => {
     const dataTag = element.getAttribute("data-tag");
     if (element.id === "main-app-navigation") {
-      element.parentNode?.remove();
+      safeRemove(element, null, 1);
     } else if (
       element.ariaExpanded === "false" &&
       element.innerText.includes("我的会籍")
     ) {
-      element.closest("nav")?.parentNode?.parentNode?.parentNode?.remove();
+      safeRemove(element, "nav", 3);
     } else if (
       dataTag === "creation-name" &&
       element.innerText.includes("Love & Peace !")
@@ -96,29 +136,25 @@ setInterval(async () => {
     } else if (dataTag === "search-input-box") {
       safeRemove(element, null, 5);
     } else if (dataTag === "chip-container") {
-      element.parentNode?.parentNode?.remove();
+      safeRemove(element, null, 2);
     } else if (dataTag === "post-details") {
-      element.remove();
-    } else if (
+      safeRemove(element);
+    } // 移除已删除的留言及发布人头像
+    else if (
       dataTag === "comment-body" &&
       element.innerText.includes("此留言已被删除。")
     ) {
-      element.parentNode?.parentNode?.remove();
+      safeRemove(element, null, 3);
     } else if (dataTag === "comment-actions") {
-      element.remove();
+      safeRemove(element);
     } else if (dataTag === "comment-field-box") {
       safeRemove(element, null, 3);
-    } else if (dataTag === "comment-row") {
-      element.parentNode?.style.setProperty(
-        "--global-bg-base-hover",
-        "#e2e8f000"
-      );
-    } else if (dataTag === "post-stream-container") {
+    } // 缩窄页边距
+    else if (dataTag === "post-stream-container") {
       element.parentNode?.style.setProperty("padding-left", "4px");
       element.parentNode?.style.setProperty("padding-right", "4px");
     }
   });
-
   // 处理按钮
   processElements("button", (button) => {
     const text = button.innerText;
@@ -128,9 +164,9 @@ setInterval(async () => {
       button.ariaExpanded === "false" &&
       button.getAttribute("aria-label") === "打开导航"
     ) {
-      button.closest("header")?.remove();
+      safeRemove(button, "header");
     } else if (["收起", "收起回复"].includes(text)) {
-      button.parentNode?.remove();
+      safeRemove(button, null, 1);
     } else if (text === "展开") {
       setInterval(clickHandler, 2888);
     } else if (text === "加载更多留言") {
@@ -141,9 +177,8 @@ setInterval(async () => {
       button.getAttribute("data-tag") === "commenter-name" &&
       text === "贝乐斯 Think Analyze Invest"
     ) {
-      button.remove();
+      safeRemove(button, '[data-tag="commenter-name"]'); // 添加选择器二次验证
     }
   });
-
   executionCount++;
 }, INTERVAL_DELAY);
