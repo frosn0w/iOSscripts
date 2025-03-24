@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.24.1123
-// @description  Simplify elements, Expand content and comments
+// @version      2.25.324
+// @description  Simplify elements, expand contents and comments
 // @author       frosn0w
 // @match        *://*.patreon.com/*
 // @run-at       document-end
