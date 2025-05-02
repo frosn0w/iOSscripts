@@ -26,19 +26,25 @@ const CONFIG = {
 
 // 全局样式（合并所有样式，避免重复注入）
 const globalStyles = `
-  p { line-height: 1.4 !important; }
-  div[data-tag="comment-row"]::before,
-  div[data-tag="comment-row"]::after {
-    width: 0 !important;
-    border-left: 0 !important;
-  }
-  .TAI-body-div p {
-    margin: 8px 0 !important;
-  }
-  .TAI-body-div ul {
-    margin: 6px 0 !important;
-  }
-`;
+    p { line-height: 1.4 !important; }
+    div[data-tag="comment-row"]::before,
+    div[data-tag="comment-row"]::after {
+      width: 0 !important;
+      border-left: 0 !important;
+    }
+    #TAI-body-id p {
+      margin: 8px 0 !important;
+    }
+    #TAI-body-id li p {
+      margin: 6px 0 !important;
+    }
+    #TAI-body-id ul {
+      margin: 6px 0 !important;
+    }
+    #TAI-body-id h3 {
+      font-size: 20px !important;
+    }
+  `;
 // 日期处理器（避免重复计算）
 const DateFormatter = {
   currentDate: new Date(),
@@ -204,9 +210,10 @@ function processDivs(element) {
 // 通过span插入CSS标签，控制正文部分格式
 function processSpans(element) {
   if (element.getAttribute("data-tag") === "post-title") {
-    element.parentNode?.parentNode?.parentNode?.parentNode?.classList.add(
-      "TAI-body-div"
-    );
+    const targetElement =
+      element.parentNode?.parentNode?.parentNode?.parentNode?.parentNode;
+    targetElement?.classList.add("TAI-body-div");
+    targetElement?.setAttribute("id", "TAI-body-id");
   }
 }
 // 主逻辑
