@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.25.324
+// @version      2.25.512
 // @description  Simplify elements, expand contents and comments
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -105,7 +105,7 @@ function shouldRemovePost(text) {
       parseInt(text.split(`${currentMonth}月`)[0]) === currentMonth - 1)
   );
 }
-// 处理 link
+// 处理 a 标签
 function processLinks(element) {
   const { textContent, href, dataset } = element;
   switch (true) {
@@ -118,7 +118,7 @@ function processLinks(element) {
     case dataset.tag === "post-published-at" && shouldRemovePost(textContent):
       safeRemove(element, 'div[data-tag="post-card"]', 2);
       break;
-    // 删除赠送卡片
+    // 移除赠送卡片
     case href === "https://www.patreon.com/user/gift?u=80821958":
       safeRemove(element, null, 4);
       break;
@@ -130,7 +130,7 @@ function processLinks(element) {
       break;
   }
 }
-// 处理 button
+// 处理 button 标签
 function processButtons(button) {
   const { textContent, ariaExpanded, ariaLabel, dataset } = button;
   const BUTTON_INTERVALS = {
@@ -139,8 +139,13 @@ function processButtons(button) {
     加载回复: 1888,
   };
   switch (true) {
+    // 移除导航栏
     case ariaExpanded === "false" && ariaLabel === "打开导航":
       safeRemove(button, "header");
+      break;
+    // 移除小屏设备视图的筛选按钮
+    case ariaLabel === "creator-public-page-post-all-filters-toggle":
+      safeRemove(button, null, 4);
       break;
     case ["收起", "收起回复"].includes(textContent):
       safeRemove(button, null, 1);
@@ -162,7 +167,7 @@ function processButtons(button) {
       break;
   }
 }
-// 处理 Div
+// 处理 Div 标签
 function processDivs(element) {
   const { dataset, id, ariaExpanded, textContent } = element;
   switch (true) {
@@ -188,9 +193,9 @@ function processDivs(element) {
     case dataset.tag === "post-details":
       safeRemove(element);
       break;
-    // 移除已删除留言区域
+    // 移除已移除留言区域
     case dataset.tag === "comment-body" &&
-      textContent.includes("此留言已被删除。"):
+      textContent.includes("此留言已被移除。"):
       safeRemove(element, null, 3);
       break;
     // 移除评论相关功能组件
