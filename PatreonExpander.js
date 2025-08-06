@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonExpander
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      2.25.512
+// @version      2.25.0803
 // @description  Simplify elements, expand contents and comments
 // @author       frosn0w
 // @match        *://*.patreon.com/*
@@ -14,7 +14,7 @@
 // 常量统一管理
 const CONFIG = {
   MAX_EXECUTIONS: 50,
-  INTERVAL_DELAY: 3888,
+  INTERVAL_DELAY: 5888,
   REMAIN_DAYS: 1,
   STYLE_ID: "patreon-expander-styles",
 };
@@ -141,7 +141,7 @@ function processLinks(element) {
 function processButtons(button) {
   const { textContent, ariaExpanded, ariaLabel, dataset } = button;
   const BUTTON_INTERVALS = {
-    展开: 2888,
+    展开: 4888,
     加载更多留言: 1688,
     加载回复: 1888,
   };
@@ -154,27 +154,17 @@ function processButtons(button) {
     case ariaLabel === "creator-public-page-post-all-filters-toggle":
       safeRemove(button, null, 4);
       break;
-    // 收起按钮时清理定时器并移除按钮
     case ["收起", "收起回复"].includes(textContent):
-      if (button.autoClicker) {
-        clearInterval(button.autoClicker);
-        delete button.autoClicker;
-      }
       safeRemove(button, null, 1);
       break;
-    // 自动点击“展开”等按钮
     case textContent === "展开":
     case textContent === "加载更多留言":
     case textContent === "加载回复":
       if (!button.autoClicker) {
         button.autoClicker = setInterval(() => {
-          // 只在按钮仍为“展开”时点击
-          if (document.contains(button) && button.textContent === textContent) {
-            button.click();
-          } else {
-            clearInterval(button.autoClicker);
-            delete button.autoClicker;
-          }
+          document.contains(button)
+            ? button.click()
+            : clearInterval(button.autoClicker);
         }, BUTTON_INTERVALS[textContent]);
       }
       break;
