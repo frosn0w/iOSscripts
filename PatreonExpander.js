@@ -14,35 +14,40 @@
 // 常量统一管理
 const CONFIG = {
   MAX_EXECUTIONS: 50,
-  INTERVAL_DELAY: 2888,
+  INTERVAL_DELAY: 3888,
   REMAIN_DAYS: 1,
   STYLE_ID: "patreon-expander-styles",
-  TARGET_SELECTORS: {
-    POST_TITLE: 'span[data-tag="post-title"]',
-    COMMENT_ROW: 'div[data-tag="comment-row"]',
-    // 添加更多常用选择器...
-  },
 };
 
 // 全局样式（合并所有样式，避免重复注入）
 const globalStyles = `
-    p { line-height: 1.4 !important; }
     div[data-tag="comment-row"]::before,
     div[data-tag="comment-row"]::after {
       width: 0 !important;
       border-left: 0 !important;
     }
-    #TAI-body-id p {
+    #TAI-global-id p {
       margin: 8px 0 !important;
+      font-size: 17px !important;
+      line-height: 1.4 !important;
     }
-    #TAI-body-id li p {
+    #TAI-global-id li p {
       margin: 6px 0 !important;
     }
-    #TAI-body-id ul {
+    #TAI-global-id ul {
       margin: 6px 0 !important;
     }
-    #TAI-body-id h3 {
+    #TAI-global-id h3 {
       font-size: 20px !important;
+    }
+    #TAI-title-id a {
+      font-size: 24px !important;
+    }
+    #TAI-comment-id p div {
+    line-height: 1.3 !important;
+    }
+    #TAI-comment-id div button span {
+    font-size: 17px !important;
     }
   `;
 // 日期处理器（避免重复计算）
@@ -105,18 +110,20 @@ function shouldRemovePost(text) {
       parseInt(text.split(`${currentMonth}月`)[0]) === currentMonth - 1)
   );
 }
+
 // 处理 a 标签
 function processLinks(element) {
   const { textContent, href, dataset } = element;
   switch (true) {
+    //格式化日期
+    case dataset.tag === "post-published-at" && shouldRemovePost(textContent):
+      safeRemove(element, 'div[data-tag="post-card"]', 2);
+      break;
     case /小时前|分钟前/.test(textContent):
       element.textContent = DateFormatter.formattedDate;
       break;
     case textContent.includes("昨天"):
       element.textContent = DateFormatter.yesterdayDate;
-      break;
-    case dataset.tag === "post-published-at" && shouldRemovePost(textContent):
-      safeRemove(element, 'div[data-tag="post-card"]', 2);
       break;
     // 移除赠送卡片
     case href === "https://www.patreon.com/user/gift?u=80821958":
@@ -147,23 +154,33 @@ function processButtons(button) {
     case ariaLabel === "creator-public-page-post-all-filters-toggle":
       safeRemove(button, null, 4);
       break;
+    // 收起按钮时清理定时器并移除按钮
     case ["收起", "收起回复"].includes(textContent):
+      if (button.autoClicker) {
+        clearInterval(button.autoClicker);
+        delete button.autoClicker;
+      }
       safeRemove(button, null, 1);
       break;
+    // 自动点击“展开”等按钮
     case textContent === "展开":
     case textContent === "加载更多留言":
     case textContent === "加载回复":
       if (!button.autoClicker) {
         button.autoClicker = setInterval(() => {
-          document.contains(button)
-            ? button.click()
-            : clearInterval(button.autoClicker);
+          // 只在按钮仍为“展开”时点击
+          if (document.contains(button) && button.textContent === textContent) {
+            button.click();
+          } else {
+            clearInterval(button.autoClicker);
+            delete button.autoClicker;
+          }
         }, BUTTON_INTERVALS[textContent]);
       }
       break;
     case dataset.tag === "commenter-name" &&
       textContent === "贝乐斯 Think Analyze Invest":
-      safeRemove(button, '[data-tag="commenter-name"]');
+      button.textContent = "贝乐斯";
       break;
   }
 }
@@ -210,6 +227,11 @@ function processDivs(element) {
       element.parentNode?.style.setProperty("padding-left", "4px");
       element.parentNode?.style.setProperty("padding-right", "4px");
       break;
+    // 注入CSS,可单独调控评论区
+    case dataset.tag === "comment-body":
+      element.parentNode?.classList.add("TAI-comment");
+      element.parentNode?.setAttribute("id", "TAI-comment-id");
+      break;
   }
 }
 // 通过span插入CSS标签，控制正文部分格式
@@ -217,8 +239,10 @@ function processSpans(element) {
   if (element.getAttribute("data-tag") === "post-title") {
     const targetElement =
       element.parentNode?.parentNode?.parentNode?.parentNode?.parentNode;
-    targetElement?.classList.add("TAI-body-div");
-    targetElement?.setAttribute("id", "TAI-body-id");
+    targetElement?.classList.add("TAI-global");
+    targetElement?.setAttribute("id", "TAI-global-id");
+    element.classList.add("TAI-title");
+    element.setAttribute("id", "TAI-title-id");
   }
 }
 // 主逻辑
@@ -227,7 +251,7 @@ function processSpans(element) {
   style.id = CONFIG.STYLE_ID;
   style.textContent = globalStyles;
   document.head.appendChild(style);
-
+  // 主循环
   let executionCount = 0;
   const interval = setInterval(() => {
     if (executionCount >= CONFIG.MAX_EXECUTIONS) return clearInterval(interval);
