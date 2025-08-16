@@ -525,7 +525,9 @@
         (tileWidth / watermarkImage.naturalWidth);
       const verticalStep = tileHeight + PAGE_WATERMARK_OPTIONS.verticalSpacing;
       const tileX = window.innerWidth / 2 - tileWidth / 2;
-      for (let y = pagetopdistance; y < pageHeight - pagebuttomdistance; y += verticalStep) {
+      const topdistance = PAGE_WATERMARK_OPTIONS.pagetopdistance;
+      const buttomdistance = PAGE_WATERMARK_OPTIONS.pagebuttomdistance;
+      for (let y = topdistance; y < pageHeight - buttomdistance; y += verticalStep) {
         const tileRect = {
           left: tileX,
           top: y,
