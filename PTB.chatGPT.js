@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         PatreonToolBox (Refactored)
+// @name         PTB.chatGPT
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.26.0810
+// @version      1.26.0816
 // @description  Refactored Patreon page expander and watermarking tool. Modular, rule-driven, safer and more maintainable.
 // @author       Frosn0w
 // @match        *://*/*
@@ -226,7 +226,7 @@
       },
       {
         test: (el) =>
-          el.href === "https://www.patreon.com/user/gift?u=80821958",
+          el.href === "https://www.patreon.com/u80821958/gift",
         action: (el) => Utils.safeRemove(el, null, 4),
       },
       {
