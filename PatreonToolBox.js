@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         PatreonToolBox
+// @name         PTB.chatGPT
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.25.0810
-// @description  Patreon page expander and watermarking tool. Now with manual activation and improved button handling.
+// @version      1.25.0906
+// @description  Refactored Patreon page expander and watermarking tool. Modular, rule-driven, safer and more maintainable.
 // @author       Frosn0w
 // @match        *://*/*
 // @grant        GM_registerMenuCommand
@@ -12,184 +12,188 @@
 // ==/UserScript==
 
 (function () {
-  ("use strict");
+  "use strict";
 
-  // =======================================
-  // =========== Toast 通知模块 =============
-  // =======================================
-
-  /**
-   * Toast 对象用于在页面右上角显示简短的消息提示
-   * 它采用单例模式，确保样式表只被注入一次
-   */
-  const Toast = {
-    styleInjected: false,
-
-    /**
-     * 初始化 Toast，注入所需的 CSS 样式到页面头部
-     * 如果样式已注入，则直接返回，避免重复操作
-     */
-    init() {
-      if (this.styleInjected) return;
-
-      const styles = `
-        .gm-toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999999; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
-        .gm-toast { background-color: rgba(0, 0, 0, 0.8); color: white; padding: 10px 20px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; transform: translateX(100%); transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: auto; }
-        .gm-toast.show { opacity: 1; transform: translateX(0); }
-        .gm-toast.success { background-color: rgba(27, 153, 68, 0.9); }
-        .gm-toast.error { background-color: rgba(212, 59, 59, 0.9); }
-      `;
-
-      const styleSheet = document.createElement("style");
-      styleSheet.type = "text/css";
-      styleSheet.innerText = styles;
-      document.head.appendChild(styleSheet);
-      this.styleInjected = true;
-    },
-
-    /**
-     * 显示一条 Toast 消息
-     * @param {string} message - 要显示的消息内容
-     * @param {number} [duration=3000] - 消息显示的持续时间（毫秒）
-     * @param {string} [type=""] - 消息类型，可以是 'success' 或 'error'，用于应用不同颜色
-     */
-    show(message, duration = 3000, type = "") {
-      this.init();
-
-      let container = document.querySelector(".gm-toast-container");
-      if (!container) {
-        container = document.createElement("div");
-        container.className = "gm-toast-container";
-        document.body.appendChild(container);
-      }
-
-      const toastElement = document.createElement("div");
-      toastElement.className = `gm-toast ${type}`;
-      toastElement.textContent = message;
-      container.appendChild(toastElement);
-
-      setTimeout(() => {
-        toastElement.classList.add("show");
-      }, 10);
-
-      setTimeout(() => {
-        toastElement.classList.remove("show");
-        toastElement.addEventListener("transitionend", () => {
-          toastElement.remove();
-        });
-      }, duration);
-    },
-  };
-
-  // =======================================
-  // ========= Patreon 页面优化模块 ==========
-  // =======================================
-
-  // 模块配置常量
-  const PATREON_CONFIG = {
-    // 需要保留帖子的天数
-    REMAIN_DAYS: 1,
-    STYLE_ID: "patreon-expander-styles",
-  };
-
-  // 全局优化样式
-  /* 
-   * 调整评论区连线部分被root代替，暂时注释掉
-   * div[data-tag="comment-row"]::before,
-   * div[data-tag="comment-row"]::after { width: 0 !important; border-left: 0 !important; }
-   * 1. 将页面分区线条宽度调整为0px，借助颜色区分分区，扩大可阅读空间
-   * 2. 调整正文文字大小和行距，包含有序/无序列表，提升可读性
-   * 3. 缩小主副标题，解决移动设备过大回行问题
-   * 4. 缩小评论区气泡圆角，缩小评论区行距，增加评论区昵称字体大小
-   */
-  const PATREON_GLOBAL_STYLES = `
-    :root { --global-borderWidth-thin: 0px !important; }
-    #TAI-Hostpost-id div p { margin: 8px 0 !important; font-size: 17px !important; line-height: 1.4 !important; }
-    #TAI-Hostpost-id li p { margin: 6px 0 !important; }
-    #TAI-Hostpost-id ul { margin: 6px 0 !important; }
-    #TAI-Hostpost-id h3 { font-size: 20px !important; }
-    #TAI-title-id a { font-size: 24px !important; }
-    #TAI-comment-id { border-radius: 8px !important; }
-    #TAI-comment-id p div { line-height: 1.3 !important; }
-    #TAI-comment-id div button span { font-size: 17px !important; }
-  `;
-
-  // 功能函数：日期格式化工具
-  const DateFormatter = {
-    currentDate: new Date(),
-    refresh() {
-      this.currentDate = new Date();
-    },
-    get formattedDate() {
-      return `${this.currentMonth}月${this.currentDay}日`;
-    },
-    get yesterdayDate() {
-      const date = new Date(this.currentDate);
-      date.setDate(date.getDate() - 1);
-      return `${date.getMonth() + 1}月${date.getDate()}日`;
-    },
-    get currentMonth() {
-      return this.currentDate.getMonth() + 1;
-    },
-    get currentDay() {
-      return this.currentDate.getDate();
-    },
-  };
-
-  // 功能函数：安全移除DOM元素
-  const safeRemove = (() => {
+  // ==================================================
+  // ================ Utility Module ==================
+  // ==================================================
+  const Utils = (() => {
     const removedCache = new WeakSet();
-    return (element, selector = null, levels = 0) => {
-      if (!element || !element.parentElement || removedCache.has(element)) {
-        return false;
-      }
+
+    function injectStyle(id, css) {
+      if (!id) return;
+      const existing = document.getElementById(id);
+      if (existing) return existing;
+      const style = document.createElement("style");
+      style.id = id;
+      style.textContent = css;
+      document.head.appendChild(style);
+      return style;
+    }
+
+    function safeRemove(input, selector = null, ascend = 0) {
       try {
-        const target = selector ? element.closest(selector) : element;
-        if (!target) return false;
+        const el =
+          typeof input === "string" ? document.querySelector(input) : input;
+        if (!el) return false;
+        const target = selector ? el.closest(selector) : el;
+        if (!target || !target.parentElement) return false;
+        if (removedCache.has(target)) return false;
         let parent = target;
-        for (let i = 0; i < levels; i++) {
+        for (let i = 0; i < ascend; i++) {
           parent = parent?.parentElement;
+          if (!parent) break;
         }
         if (parent) {
           parent.remove();
-          removedCache.add(element);
+          removedCache.add(target);
           return true;
         }
-        return false;
-      } catch (error) {
-        console.error("Removal failed:", error);
-        return false;
+      } catch (err) {
+        console.error("safeRemove error:", err);
       }
+      return false;
+    }
+
+    function safeClick(
+      button,
+      interval = 1000,
+      expectedText = null,
+      maxAttempts = 12
+    ) {
+      if (!button || button.__gmAutoClick) return;
+      let attempts = 0;
+      button.__gmAutoClick = setInterval(() => {
+        attempts++;
+        try {
+          if (
+            !document.contains(button) ||
+            button.disabled ||
+            button.getAttribute("aria-busy") === "true"
+          ) {
+            clearInterval(button.__gmAutoClick);
+            delete button.__gmAutoClick;
+            return;
+          }
+          if (expectedText && button.textContent !== expectedText) {
+            clearInterval(button.__gmAutoClick);
+            delete button.__gmAutoClick;
+            return;
+          }
+          if (attempts > maxAttempts) {
+            clearInterval(button.__gmAutoClick);
+            delete button.__gmAutoClick;
+            return;
+          }
+          button.click();
+        } catch (e) {
+          clearInterval(button.__gmAutoClick);
+          delete button.__gmAutoClick;
+        }
+      }, interval);
+    }
+
+    function formatDateFromNow(date = new Date()) {
+      // Returns object with month/day strings
+      return { month: date.getMonth() + 1, day: date.getDate() };
+    }
+
+    function todayString() {
+      const d = new Date();
+      return `${d.getMonth() + 1}月${d.getDate()}日`;
+    }
+
+    function yesterdayString() {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return `${d.getMonth() + 1}月${d.getDate()}日`;
+    }
+
+    return {
+      injectStyle,
+      safeRemove,
+      safeClick,
+      formatDateFromNow,
+      todayString,
+      yesterdayString,
     };
   })();
 
-  // 功能函数：安全点击按钮
-  function safeClick(button, interval, expectedText) {
-    if (!button || button.autoClicker) return;
-    button.autoClicker = setInterval(() => {
-      try {
-        if (
-          !document.contains(button) ||
-          (expectedText && button.textContent !== expectedText) ||
-          button.disabled ||
-          button.getAttribute("aria-busy") === "true"
-        ) {
-          clearInterval(button.autoClicker);
-          delete button.autoClicker;
-          return;
-        }
-        button.click();
-      } catch (e) {
-        clearInterval(button.autoClicker);
-        delete button.autoClicker;
-      }
-    }, interval);
-  }
+  // ==================================================
+  // =================== Toast Module =================
+  // ==================================================
+  const Toast = (() => {
+    let id = "gm-toast-styles";
+    let styleInjected = false;
+    const containerClass = "gm-toast-container";
 
-  // 过期内容判断函数
+    const styles = `
+      .${containerClass} { position: fixed; top: 20px; right: 20px; z-index: 9999999; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
+      .gm-toast { background-color: rgba(0, 0, 0, 0.8); color: white; padding: 10px 20px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; transform: translateX(100%); transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: auto; }
+      .gm-toast.show { opacity: 1; transform: translateX(0); }
+      .gm-toast.success { background-color: rgba(27, 153, 68, 0.9); }
+      .gm-toast.error { background-color: rgba(212, 59, 59, 0.9); }
+    `;
+
+    function init() {
+      if (styleInjected) return;
+      Utils.injectStyle(id, styles);
+      styleInjected = true;
+    }
+
+    function show(message, duration = 3000, type = "") {
+      init();
+      let container = document.querySelector(`.${containerClass}`);
+      if (!container) {
+        container = document.createElement("div");
+        container.className = containerClass;
+        document.body.appendChild(container);
+      }
+      const el = document.createElement("div");
+      el.className = `gm-toast ${type}`;
+      el.textContent = message;
+      container.appendChild(el);
+      // animate
+      requestAnimationFrame(() => el.classList.add("show"));
+      setTimeout(() => {
+        el.classList.remove("show");
+        el.addEventListener("transitionend", () => el.remove(), { once: true });
+      }, duration);
+    }
+
+    return { show };
+  })();
+
+  // ==================================================
+  // ======== Patreon Configuration & Styles ==========
+  // ==================================================
+  const CONFIG = {
+    REMAIN_DAYS: 1,
+    STYLE_ID: "patreon-expander-styles",
+    PATREON_GLOBAL_STYLES: `
+      :root { --global-borderWidth-thin: 0px !important; --global-bg-base-default: #f1f1f1 !important; }
+      #TAI-Postcard-id { background-color: #ffffff !important; }
+      #TAI-Hostpost-id div div div p { margin: 8px 0 !important; font-size: 17px !important; line-height: 1.4 !important; }
+      #TAI-Hostpost-id li p { margin: 6px 0 !important; }
+      #TAI-Hostpost-id ul { margin: 6px 0 !important; }
+      #TAI-Hostpost-id h3 { font-size: 20px !important; }
+      #TAI-title-id a { font-size: 24px !important; }
+      #TAI-comment-id { border-radius: 8px !important; }
+      #TAI-comment-id p div { line-height: 1.3 !important; }
+      #TAI-comment-id div button span { font-size: 17px !important; }
+    `,
+  };
+
+  // ==================================================
+  // ============= Remove Outdated Post ===============
+  // ==================================================
   function shouldRemovePost(text) {
-    const remainDays = PATREON_CONFIG.REMAIN_DAYS;
-    const { currentMonth, currentDay } = DateFormatter;
+    if (!text) return false;
+    const remainDays = CONFIG.REMAIN_DAYS;
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentDay = now.getDate();
+
     if (text.includes(" 天前")) return true;
     const match = text.match(/(\d{1,2})月(\d{1,2})日/);
     if (!match) return false;
@@ -201,145 +205,228 @@
     return false;
   }
 
-  // 处理链接元素
-  function processLinks(element) {
-    const { textContent, href, dataset } = element;
-    // 根据日期移除过期内容
-    if (dataset.tag === "post-published-at" && shouldRemovePost(textContent)) {
-      safeRemove(element, 'div[data-tag="post-card"]', 2);
-    }
-    // 格式化日期
-    else if (/小时前|分钟前/.test(textContent)) {
-      element.textContent = DateFormatter.formattedDate;
-    } else if (textContent.includes("昨天")) {
-      element.textContent = DateFormatter.yesterdayDate;
-    }
-    // 移除分享模块
-    else if (href === "https://www.patreon.com/user/gift?u=80821958") {
-      safeRemove(element, null, 4);
-    } else if (textContent === "Skip navigation") {
-      element.remove();
-    }
-    // 移除评论区头像
-    else if (dataset.tag === "comment-avatar-wrapper") {
-      safeRemove(element, null, 1);
+  // ==================================================
+  // =================== Rule Engine ==================
+  // ==================================================
+  // Rules are intentionally written to preserve original behaviour.
+  const RULES = {
+    a: [
+      {
+        test: (el) =>
+          el.dataset?.tag === "post-published-at" &&
+          shouldRemovePost(el.textContent),
+        action: (el) => Utils.safeRemove(el, 'div[data-tag="post-card"]', 2),
+      },
+      {
+        test: (el) => /小时前|分钟前/.test(el.textContent),
+        action: (el) => (el.textContent = Utils.todayString()),
+      },
+      {
+        test: (el) => el.textContent?.includes("昨天"),
+        action: (el) => (el.textContent = Utils.yesterdayString()),
+      },
+      {
+        test: (el) => el.href === "https://www.patreon.com/u80821958/gift",
+        action: (el) => Utils.safeRemove(el, null, 4),
+      },
+      {
+        test: (el) => el.textContent === "Skip navigation",
+        action: (el) => el.remove(),
+      },
+      {
+        test: (el) => el.dataset?.tag === "comment-avatar-wrapper",
+        action: (el) => Utils.safeRemove(el, null, 1),
+      },
+    ],
+
+    button: [
+      {
+        test: (el) =>
+          el.getAttribute("aria-expanded") === "false" &&
+          el.getAttribute("aria-label") === "打开导航",
+        action: (el) => Utils.safeRemove(el, "header"),
+      },
+      {
+        test: (el) =>
+          el.getAttribute("aria-label") ===
+          "creator-public-page-post-all-filters-toggle",
+        action: (el) => Utils.safeRemove(el, null, 4),
+      },
+      {
+        test: (el) => ["收起", "收起回复"].includes(el.textContent),
+        action: (el) => Utils.safeRemove(el, null, 1),
+      },
+      {
+        test: (el) =>
+          ["展开", "加载更多留言", "加载回复"].includes(el.textContent),
+        action: (el) =>
+          Utils.safeClick(el, {
+            /* kept default below */
+          }),
+      },
+      {
+        test: (el) =>
+          el.dataset?.tag === "commenter-name" &&
+          el.textContent === "贝乐斯 Think Analyze Invest",
+        action: (el) => (el.textContent = "贝乐斯"),
+      },
+    ],
+
+    div: [
+      {
+        test: (el) => el.id === "main-app-navigation",
+        action: (el) => Utils.safeRemove(el, null, 1),
+      },
+      {
+        test: (el) =>
+          el.getAttribute("aria-expanded") === "false" &&
+          el.textContent?.includes("我的会籍"),
+        action: (el) => Utils.safeRemove(el, "nav", 3),
+      },
+      {
+        test: (el) =>
+          el.dataset?.tag === "creation-name" &&
+          el.textContent?.includes("Love & Peace !"),
+        action: (el) => Utils.safeRemove(el, null, 4),
+      },
+      {
+        test: (el) => el.dataset?.tag === "search-input-box",
+        action: (el) => Utils.safeRemove(el, null, 5),
+      },
+      {
+        test: (el) => el.dataset?.tag === "chip-container",
+        action: (el) => Utils.safeRemove(el, null, 2),
+      },
+      {
+        test: (el) => el.dataset?.tag === "post-details",
+        action: (el) => Utils.safeRemove(el),
+      },
+      {
+        test: (el) =>
+          el.dataset?.tag === "comment-body" &&
+          el.textContent?.includes("此留言已被移除"),
+        action: (el) => Utils.safeRemove(el, null, 3),
+      },
+      {
+        test: (el) => el.dataset?.tag === "comment-actions",
+        action: (el) => Utils.safeRemove(el),
+      },
+      {
+        test: (el) => el.dataset?.tag === "comment-field-box",
+        action: (el) => Utils.safeRemove(el, null, 3),
+      },
+      {
+        test: (el) => el.dataset?.tag === "post-stream-container",
+        action: (el) => {
+          el.parentNode?.parentNode?.style.setProperty("padding-left", "0px");
+          el.parentNode?.parentNode?.style.setProperty("padding-right", "0px");
+        },
+      },
+      {
+        test: (el) => el.dataset?.tag === "post-card",
+        action: (el) => el.style.setProperty("--Card-radius-enabled", "0"),
+      },
+      {
+        test: (el) => el.dataset?.tag === "comment-body",
+        action: (el) => {
+          el.parentNode?.classList.add("TAI-comment");
+          el.parentNode?.setAttribute("id", "TAI-comment-id");
+        },
+      },
+    ],
+
+    span: [
+      {
+        test: (el) => el.getAttribute("data-tag") === "post-title",
+        action: (el) => {
+          const targetElement1 =
+            el.parentNode?.parentNode?.parentNode?.parentNode;
+          targetElement1?.classList.add("TAI-Hostpost");
+          targetElement1?.setAttribute("id", "TAI-Hostpost-id");
+          const targetElement2 =
+            el.parentNode?.parentNode?.parentNode?.parentNode?.parentNode;
+          targetElement2?.classList.add("TAI-Postcard");
+          targetElement2?.setAttribute("id", "TAI-Postcard-id");
+          el.classList.add("TAI-title");
+          el.setAttribute("id", "TAI-title-id");
+        },
+      },
+    ],
+  };
+
+  // Map for button auto-click intervals used previously
+  const BUTTON_INTERVALS = { 展开: 3888, 加载更多留言: 1666, 加载回复: 1888 };
+
+  // Helper to run safeClick with previous semantics
+  function clickWithIntervals(el) {
+    const interval = BUTTON_INTERVALS[el.textContent] || 1500;
+    Utils.safeClick(el, interval, el.textContent, 20);
+  }
+
+  // ==================================================
+  // ============== Element Processor =================
+  // ==================================================
+  function processElement(el) {
+    if (!el || el.nodeType !== 1) return;
+    const tag = el.tagName.toLowerCase();
+    const rules = RULES[tag];
+    if (!rules) return;
+    for (const rule of rules) {
+      try {
+        if (rule.test(el)) {
+          // special-case for click rule object
+          if (
+            tag === "button" &&
+            rule.action &&
+            rule.action.name === "bound "
+          ) {
+            // noop
+          }
+          // If action references clickWithIntervals marker, call it
+          if (rule.test && rule.action === Utils.safeClick) {
+            clickWithIntervals(el);
+            break;
+          }
+
+          // If action is the generic placeholder we used earlier, handle click
+          if (
+            tag === "button" &&
+            ["展开", "加载更多留言", "加载回复"].includes(el.textContent)
+          ) {
+            clickWithIntervals(el);
+            break;
+          }
+
+          // Otherwise execute action
+          rule.action(el);
+          break; // break after first matching rule to mimic original logic
+        }
+      } catch (e) {
+        console.error("rule action error:", e);
+      }
     }
   }
 
-  // 处理按钮元素
-  function processButtons(button) {
-    const { textContent, ariaExpanded, ariaLabel } = button;
-    const BUTTON_INTERVALS = { 展开: 3888, 加载更多留言: 1666, 加载回复: 1888 };
-    // 移除导航栏
-    if (ariaExpanded === "false" && ariaLabel === "打开导航") {
-      safeRemove(button, "header");
-    }
-    // 移除页面顶部的筛选按钮
-    else if (ariaLabel === "creator-public-page-post-all-filters-toggle") {
-      safeRemove(button, null, 4);
-    }
-    // 移除展开后的收起按钮
-    else if (["收起", "收起回复"].includes(textContent)) {
-      safeRemove(button, null, 1);
-    }
-    // 展开正文并加载评论
-    else if (Object.keys(BUTTON_INTERVALS).includes(textContent)) {
-      safeClick(button, BUTTON_INTERVALS[textContent], textContent);
-    }
-    // 简化博主昵称解决移动设备出现省略号
-    else if (
-      button.dataset.tag === "commenter-name" &&
-      textContent === "贝乐斯 Think Analyze Invest"
-    ) {
-      button.textContent = "贝乐斯";
-    }
-  }
-
-  // 处理 div 元素
-  function processDivs(element) {
-    const { dataset, id, ariaExpanded, textContent } = element;
-    // 移除主导航
-    if (id === "main-app-navigation") {
-      safeRemove(element, null, 1);
-    }
-    // 移除顶部杂项
-    else if (ariaExpanded === "false" && textContent.includes("我的会籍")) {
-      safeRemove(element, "nav", 3);
-    }
-    // 移除顶部标题文字
-    else if (
-      dataset.tag === "creation-name" &&textContent.includes("Love & Peace !")) {
-      safeRemove(element, null, 4);
-    }
-    // 移除顶部的搜索框
-    else if (dataset.tag === "search-input-box") {
-      safeRemove(element, null, 5);
-    }
-    // 移除“新功能”按钮
-    else if (dataset.tag === "chip-container") {
-      safeRemove(element, null, 2);
-    }
-    // 移除转评赞按钮
-    else if (dataset.tag === "post-details") {
-      safeRemove(element);
-    }
-    // 移除评论区已删除留言
-    else if (
-      dataset.tag === "comment-body" &&
-      textContent.includes("此留言已被移除")
-    ) {
-      safeRemove(element, null, 3);
-    }
-    // 移除评论区回复框、操作按钮
-    else if (dataset.tag === "comment-actions") {
-      safeRemove(element);
-    } else if (dataset.tag === "comment-field-box") {
-      safeRemove(element, null, 3);
-    }
-    // 缩窄正文卡片边距
-    else if (dataset.tag === "post-stream-container") {
-      element.parentNode?.style.setProperty("padding-left", "0px");
-      element.parentNode?.style.setProperty("padding-right", "0px");
-    }
-    // 关闭正文卡片圆角
-    else if (dataset.tag === "post-card") {
-      element.style.setProperty("--Card-radius-enabled", "0");
-    }
-    // 注入评论区样式
-    else if (dataset.tag === "comment-body") {
-      element.parentNode?.classList.add("TAI-comment");
-      element.parentNode?.setAttribute("id", "TAI-comment-id");
-    }
-  }
-
-  // 处理 span 元素
-  function processSpans(element) {
-    // 注入标题、正文主体样式
-    if (element.getAttribute("data-tag") === "post-title") {
-      const targetElement =
-        element.parentNode?.parentNode?.parentNode?.parentNode?.parentNode;
-      targetElement?.classList.add("TAI-Hostpost");
-      targetElement?.setAttribute("id", "TAI-Hostpost-id");
-      element.classList.add("TAI-title");
-      element.setAttribute("id", "TAI-title-id");
-    }
-  }
-
-  // 定义观察器和状态变量，但不立即启动
-  let observer;
+  // ==================================================
+  // ============ Patreon Expander Module =============
+  // ==================================================
+  let observer = null;
   let isObserverActive = false;
 
-  /*
-   * 运行 Patreon 页面优化功能的主函数
-   * 此函数会一次性处理当前页面内容，并启动一个观察器来持续监控动态加载的内容
-   */
+  function scanAndProcess(root = document) {
+    // process the root if it is a target
+    const candidates = root.querySelectorAll("a, button, div, span");
+    // also include the root itself if it matches
+    if (root.matches && root.matches("a, button, div, span"))
+      processElement(root);
+    candidates.forEach((el) => processElement(el));
+  }
+
   function runPatreonExpander() {
-    // 确保只在 Patreon 网站上运行
     if (!window.location.hostname.includes("patreon.com")) {
       Toast.show("此功能专为Patreon网站设计", 3000, "error");
       return;
     }
-    // 防止用户重复点击菜单命令，重复启动观察器
     if (isObserverActive) {
       Toast.show("页面优化功能已在运行中", 3000);
       return;
@@ -347,133 +434,94 @@
 
     Toast.show("开始执行Patreon页面优化...", 2000, "success");
 
-    // 注入全局样式
-    if (!document.getElementById(PATREON_CONFIG.STYLE_ID)) {
-      const style = document.createElement("style");
-      style.id = PATREON_CONFIG.STYLE_ID;
-      style.textContent = PATREON_GLOBAL_STYLES;
-      document.head.appendChild(style);
-    }
+    // inject global styles
+    Utils.injectStyle(CONFIG.STYLE_ID, CONFIG.PATREON_GLOBAL_STYLES);
 
-    // 刷新日期并对当前页面上所有相关元素进行一次性处理
-    DateFormatter.refresh();
-    document.querySelectorAll("a, button, div, span").forEach((el) => {
-      if (el.matches("a")) processLinks(el);
-      if (el.matches("button")) processButtons(el);
-      if (el.matches("div")) processDivs(el);
-      if (el.matches("span")) processSpans(el);
-    });
+    // initial pass
+    scanAndProcess(document);
 
-    // 初始化并启动 MutationObserver 来处理后续动态加载的内容
+    // optimized mutation observer
     observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        // --- 处理新增的节点 ---
-        if (mutation.type === "childList") {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === 1) {
-              // 仅处理元素节点
-              const elements = [
-                node,
-                ...node.querySelectorAll("a, button, div, span"),
-              ];
-              elements.forEach((el) => {
-                if (el.matches("a")) processLinks(el);
-                if (el.matches("button")) processButtons(el);
-                if (el.matches("div")) processDivs(el);
-                if (el.matches("span")) processSpans(el);
-              });
+      for (const m of mutations) {
+        if (m.type === "childList") {
+          m.addedNodes.forEach((node) => {
+            if (node.nodeType !== 1) return; // only elements
+            // If node itself is relevant, process it directly; otherwise limited query for performance
+            if (node.matches && node.matches("a, button, div, span")) {
+              processElement(node);
             }
+            // Query children but limit selector to only the needed tags (short-circuiting large trees)
+            const inner = node.querySelectorAll("a, button, div, span");
+            inner.forEach((el) => processElement(el));
           });
-        }
-        // --- 处理属性或文本变化 (用于捕捉“展开”->“收起”等状态变化) ---
-        else if (
-          mutation.type === "attributes" ||
-          mutation.type === "characterData"
-        ) {
-          // 如果目标是文本节点，则获取其父元素；否则目标就是元素本身
+        } else if (m.type === "attributes" || m.type === "characterData") {
           const targetElement =
-            mutation.target.nodeType === Node.TEXT_NODE
-              ? mutation.target.parentElement
-              : mutation.target;
-          if (targetElement && typeof targetElement.matches === "function") {
-            if (targetElement.matches("button")) {
-              processButtons(targetElement);
-            }
+            m.target.nodeType === Node.TEXT_NODE
+              ? m.target.parentElement
+              : m.target;
+          if (
+            targetElement &&
+            typeof targetElement.matches === "function" &&
+            targetElement.matches("button")
+          ) {
+            processElement(targetElement);
           }
         }
       }
     });
 
-    // 启动观察器，增加对属性和文本内容的监控
     observer.observe(document.body, {
       childList: true,
       subtree: true,
       attributes: true,
       characterData: true,
     });
-
-    isObserverActive = true; // 标记为已运行，防止重复启动
+    isObserverActive = true;
     Toast.show("页面动态监控已启动", 2500, "success");
   }
 
-  // =======================================
-  // =========== 水印及防伪模块 ==============
-  // =======================================
-  // 修改文字颜色及博主名
-  function Copyrights() {
-    const styleTag = document.getElementById("patreon-expander-styles");
-    if (styleTag) {
-      styleTag.textContent += `
-          #TAI-Hostpost-id div p { color: #333333 !important; }
-    `;
-    }
-    const buttons = document.querySelectorAll(
-      'button[data-tag="commenter-name"]'
-    );
-    buttons.forEach((btn) => {
-      if (btn.textContent.trim() === "贝乐斯") {
-        btn.textContent = "正版微信 bWFzaw";
-      }
-    });
-    Toast.show("文字颜色减弱、博主名替换已完成", 3000);
-  }
-  // 图片水印配置
+  // ==================================================
+  // =============== Watermark Module =================
+  // ==================================================
   const WATERMARK_URLS = [
     "https://raw.githubusercontent.com/frosn0w/Pic-Bed/refs/heads/main/Patreon_WM/WM.Wechat.LGRAY.png",
     "https://raw.githubusercontent.com/frosn0w/Pic-Bed/refs/heads/main/Patreon_WM/WM.Wechat.CLR.png",
   ];
-  const WATERMARK_OPTIONS = {
-    scale: 0.45,
-    opacity: 0.99,
-  };
 
-  // 页面中心水印配置
+  const WATERMARK_OPTIONS = { scale: 0.4, opacity: 0.99 };
+
   const PAGE_WATERMARK_OPTIONS = {
-    url: "https://raw.githubusercontent.com/frosn0w/Pic-Bed/refs/heads/main/Patreon_WM/WM.Wechat.LGRAY.png",
+    url: WATERMARK_URLS[0],
     width: 160,
     opacity: 0.99,
     verticalSpacing: 400,
+    // these distances are used to avoid watermarking the top and bottom of the page
+    pagetopdistance: 120,
+    pagebuttomdistance: 50,
   };
 
-  // 应用页面中心水印
   function applyPageWatermark() {
     const WATERMARK_ID = "gm-page-watermark-container";
-    if (document.getElementById(WATERMARK_ID)) {
-      console.log("Page watermark already exists.");
-      return;
-    }
-    const watermarkImage = new window.Image();
+    if (document.getElementById(WATERMARK_ID)) return;
+    const watermarkImage = new Image();
     watermarkImage.crossOrigin = "Anonymous";
     watermarkImage.src = PAGE_WATERMARK_OPTIONS.url;
     watermarkImage.onload = () => {
+      const pageWidth = Math.max(
+        document.documentElement.scrollWidth,
+        document.body.scrollWidth
+      );
+      const pageHeight = Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight
+      );
       const container = document.createElement("div");
       container.id = WATERMARK_ID;
-      const pageWidth = document.body.scrollWidth;
-      const pageHeight = document.body.scrollHeight;
-      container.style.cssText = `position: absolute; top: 0; left: 0; width: ${pageWidth}px; height: ${pageHeight}px; z-index: 9999998; pointer-events: none;`;
+      container.style.cssText = `position:absolute;top:0;left:0;width:${pageWidth}px;height:${pageHeight}px;z-index:9999998;pointer-events:none;`;
       document.body.appendChild(container);
-      const imageRects = Array.from(document.querySelectorAll("img")).map(
-        (img) => img.getBoundingClientRect()
+
+      const imgs = Array.from(document.querySelectorAll("img")).map((i) =>
+        i.getBoundingClientRect()
       );
       const tileWidth = PAGE_WATERMARK_OPTIONS.width;
       const tileHeight =
@@ -481,14 +529,20 @@
         (tileWidth / watermarkImage.naturalWidth);
       const verticalStep = tileHeight + PAGE_WATERMARK_OPTIONS.verticalSpacing;
       const tileX = window.innerWidth / 2 - tileWidth / 2;
-      for (let y = 120; y < pageHeight; y += verticalStep) {
+      const topdistance = PAGE_WATERMARK_OPTIONS.pagetopdistance;
+      const buttomdistance = PAGE_WATERMARK_OPTIONS.pagebuttomdistance;
+      for (
+        let y = topdistance;
+        y < pageHeight - buttomdistance;
+        y += verticalStep
+      ) {
         const tileRect = {
           left: tileX,
           top: y,
           right: tileX + tileWidth,
           bottom: y + tileHeight,
         };
-        const intersectsWithImage = imageRects.some(
+        const intersects = imgs.some(
           (imgRect) =>
             !(
               tileRect.right < imgRect.left + window.scrollX ||
@@ -497,118 +551,141 @@
               tileRect.top > imgRect.bottom + window.scrollY
             )
         );
-        if (intersectsWithImage) continue;
-        const tile = new window.Image();
+        if (intersects) continue;
+        const tile = new Image();
         tile.src = watermarkImage.src;
-        tile.style.cssText = `
-        position: absolute; left: ${tileX}px; top: ${y}px; width: ${tileWidth}px; height: ${tileHeight}px;
-        opacity: ${PAGE_WATERMARK_OPTIONS.opacity}; pointer-events: none;
-        `;
+        tile.style.cssText = `position:absolute;left:${tileX}px;top:${y}px;width:${tileWidth}px;height:${tileHeight}px;opacity:${PAGE_WATERMARK_OPTIONS.opacity};pointer-events:none;`;
         container.appendChild(tile);
       }
       Toast.show("页面水印已应用", 2000, "success");
     };
-    watermarkImage.onerror = () => {
+    watermarkImage.onerror = () =>
       Toast.show("页面水印SVG加载失败", 4000, "error");
-    };
   }
 
-  // 应用图片水印
   function applyToPageImages(watermarks) {
-    if (watermarks.length === 0) {
+    if (!watermarks || watermarks.length === 0) {
       Toast.show("图片水印加载失败", 4000, "error");
       return;
     }
-    const images = document.querySelectorAll(
-      'img:not([data-watermarked="true"])'
+    const images = Array.from(
+      document.querySelectorAll('img:not([data-watermarked="true"])')
     );
     if (images.length === 0) {
       Toast.show("未找到需要添加水印的新图片", 3000);
       return;
     }
     Toast.show(`为 ${images.length} 张图片添加水印...`, 3000, "success");
-    images.forEach((img) => {
-      const watermark =
-        watermarks[Math.floor(Math.random() * watermarks.length)];
-      img.crossOrigin = "Anonymous";
-      const process = (target, wm) => {
-        if (
-          target.dataset.watermarked ||
-          !target.naturalWidth ||
-          !target.naturalHeight
-        )
-          return;
+
+    // batch processing to avoid long main-thread blocking
+    const batchSize = 8;
+    let idx = 0;
+
+    function processBatch() {
+      const slice = images.slice(idx, idx + batchSize);
+      slice.forEach((img) => {
         try {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          canvas.width = target.naturalWidth;
-          canvas.height = target.naturalHeight;
-          ctx.drawImage(target, 0, 0);
-          ctx.globalAlpha = WATERMARK_OPTIONS.opacity;
-          const fitRatio = Math.min(
-            canvas.width / wm.naturalWidth,
-            canvas.height / wm.naturalHeight
-          );
-          const finalScale = fitRatio * WATERMARK_OPTIONS.scale;
-          const w = wm.naturalWidth * finalScale;
-          const h = wm.naturalHeight * finalScale;
-          const x = (canvas.width - w) / 2;
-          const y = (canvas.height - h) / 2;
-          ctx.drawImage(wm, x, y, w, h);
-          target.dataset.watermarked = "true";
-          target.src = canvas.toDataURL();
+          const watermark =
+            watermarks[Math.floor(Math.random() * watermarks.length)];
+          img.crossOrigin = "Anonymous";
+          function doProcess(target, wm) {
+            if (
+              target.dataset.watermarked ||
+              !target.naturalWidth ||
+              !target.naturalHeight
+            )
+              return;
+            try {
+              const canvas = document.createElement("canvas");
+              const ctx = canvas.getContext("2d");
+              canvas.width = target.naturalWidth;
+              canvas.height = target.naturalHeight;
+              ctx.drawImage(target, 0, 0);
+              ctx.globalAlpha = WATERMARK_OPTIONS.opacity;
+              const fitRatio = Math.min(
+                canvas.width / wm.naturalWidth,
+                canvas.height / wm.naturalHeight
+              );
+              const finalScale = fitRatio * WATERMARK_OPTIONS.scale;
+              const w = wm.naturalWidth * finalScale;
+              const h = wm.naturalHeight * finalScale;
+              const x = (canvas.width - w) / 2;
+              const y = (canvas.height - h) / 2;
+              ctx.drawImage(wm, x, y, w, h);
+              target.dataset.watermarked = "true";
+              target.src = canvas.toDataURL();
+            } catch (e) {
+              console.error("图片水印处理失败：", e);
+            }
+          }
+          if (img.complete) doProcess(img, watermark);
+          else img.onload = () => doProcess(img, watermark);
         } catch (e) {
-          console.error("图片水印处理失败：", e);
+          console.error(e);
         }
-      };
-      if (img.complete) {
-        process(img, watermark);
-      } else {
-        img.onload = () => process(img, watermark);
-      }
-    });
+      });
+      idx += batchSize;
+      if (idx < images.length) setTimeout(processBatch, 120);
+    }
+
+    processBatch();
   }
 
-  // 加载并应用水印
   function addWatermarks() {
-    const loadedWatermarks = [];
-    let loadedCount = 0;
-    let hasError = false;
     Toast.show(`预加载 ${WATERMARK_URLS.length} 个图片水印...`);
-    const onAllLoaded = () => {
-      if (hasError) {
-        Toast.show("部分图片水印加载失败，仍将继续应用", 4000, "error");
+    const loaded = [];
+    let count = 0;
+    let hasError = false;
+    function maybeDone() {
+      if (count === WATERMARK_URLS.length) {
+        if (hasError)
+          Toast.show("部分图片水印加载失败，仍将继续应用", 4000, "error");
+        applyToPageImages(loaded.filter(Boolean));
+        applyPageWatermark();
       }
-      applyToPageImages(loadedWatermarks.filter(Boolean));
-      applyPageWatermark();
-    };
-    WATERMARK_URLS.forEach((url, i) => {
-      const watermark = new window.Image();
-      watermark.crossOrigin = "Anonymous";
-      watermark.src = url;
-      watermark.onload = () => {
-        loadedCount++;
-        loadedWatermarks[i] = watermark;
-        if (loadedCount === WATERMARK_URLS.length) onAllLoaded();
+    }
+    WATERMARK_URLS.forEach((u, i) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.src = u;
+      img.onload = () => {
+        loaded[i] = img;
+        count++;
+        maybeDone();
       };
-      watermark.onerror = () => {
-        loadedCount++;
+      img.onerror = () => {
         hasError = true;
-        console.error(`加载水印失败 #${i + 1}: ${url}`);
-        if (loadedCount === WATERMARK_URLS.length) onAllLoaded();
+        count++;
+        Toast.show(`加载水印失败 #${i + 1}: ${u}`, 4000, "error");
+        maybeDone();
       };
     });
-    const buttons = document.querySelectorAll(
-      'button[data-tag="commenter-name"]'
-    );
-    Copyrights();
+
+    // small UI changes: weaken text color and replace author buttons as before
+    (function applyCopyrights() {
+      const styleTag = document.getElementById(CONFIG.STYLE_ID);
+      if (styleTag)
+        styleTag.textContent += `\n#TAI-Hostpost-id div p { color: #222222 !important; }`;
+      const buttons = document.querySelectorAll(
+        'button[data-tag="commenter-name"]'
+      );
+      buttons.forEach((btn) => {
+        if (btn.textContent.trim() === "贝乐斯") {
+          btn.textContent = "正版微信 bWFzaw";
+        }
+      });
+      Toast.show("文字颜色减弱、博主名替换已完成", 3000);
+    })();
   }
 
-  // =======================================
-  // ============== 菜单注册 ================
-  // =======================================
-  // 命令1：Patreon Expander - 手动启动页面优化和监控
-  GM_registerMenuCommand("1. Patreon Expander", runPatreonExpander);
-  // 命令2：Content Protector - 手动添加水印和防伪信息
-  GM_registerMenuCommand("2. Copyright Protector", addWatermarks);
+  // ==================================================
+  // ================= Menu Registration ==============
+  // ==================================================
+  try {
+    GM_registerMenuCommand("1. Patreon Expander", runPatreonExpander);
+    GM_registerMenuCommand("2. Copyright Protector", addWatermarks);
+  } catch (e) {
+    // graceful fallback for environments without GM API
+    console.warn("GM_registerMenuCommand not available:", e);
+  }
 })();
