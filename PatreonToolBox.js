@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         PTB.chatGPT
+// @name         PatreonToolBox
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.25.0906
+// @version      1.25.0907
 // @description  Refactored Patreon page expander and watermarking tool. Modular, rule-driven, safer and more maintainable.
 // @author       Frosn0w
 // @match        *://*/*
@@ -168,11 +168,11 @@
   // ======== Patreon Configuration & Styles ==========
   // ==================================================
   const CONFIG = {
-    REMAIN_DAYS: 1,
+    REMAIN_DAYS: 0,
     STYLE_ID: "patreon-expander-styles",
     PATREON_GLOBAL_STYLES: `
-      :root { --global-borderWidth-thin: 0px !important; --global-bg-base-default: #f1f1f1 !important; }
-      #TAI-Postcard-id { background-color: #ffffff !important; }
+      :root { --global-borderWidth-thin: 0px !important; --global-bg-pageAlt-default: #f1f1f1; }
+      #TAI-Postcard-id div { background-color: #ffffff; }
       #TAI-Hostpost-id div div div p { margin: 8px 0 !important; font-size: 17px !important; line-height: 1.4 !important; }
       #TAI-Hostpost-id li p { margin: 6px 0 !important; }
       #TAI-Hostpost-id ul { margin: 6px 0 !important; }
@@ -217,6 +217,7 @@
           shouldRemovePost(el.textContent),
         action: (el) => Utils.safeRemove(el, 'div[data-tag="post-card"]', 2),
       },
+      // 格式化日期
       {
         test: (el) => /小时前|分钟前/.test(el.textContent),
         action: (el) => (el.textContent = Utils.todayString()),
@@ -225,12 +226,14 @@
         test: (el) => el.textContent?.includes("昨天"),
         action: (el) => (el.textContent = Utils.yesterdayString()),
       },
+      // 移除赠送礼物区域
       {
         test: (el) => el.href === "https://www.patreon.com/u80821958/gift",
         action: (el) => Utils.safeRemove(el, null, 4),
       },
+      // 移除“跳过导航”标签
       {
-        test: (el) => el.textContent === "Skip navigation",
+        test: (el) => el.textContent === "跳过导航",
         action: (el) => el.remove(),
       },
       {
@@ -240,18 +243,14 @@
     ],
 
     button: [
-      {
-        test: (el) =>
-          el.getAttribute("aria-expanded") === "false" &&
-          el.getAttribute("aria-label") === "打开导航",
-        action: (el) => Utils.safeRemove(el, "header"),
-      },
+      // 移除移动端筛选按钮
       {
         test: (el) =>
           el.getAttribute("aria-label") ===
           "creator-public-page-post-all-filters-toggle",
         action: (el) => Utils.safeRemove(el, null, 4),
       },
+      // 展开内容并移除按钮
       {
         test: (el) => ["收起", "收起回复"].includes(el.textContent),
         action: (el) => Utils.safeRemove(el, null, 1),
@@ -259,11 +258,9 @@
       {
         test: (el) =>
           ["展开", "加载更多留言", "加载回复"].includes(el.textContent),
-        action: (el) =>
-          Utils.safeClick(el, {
-            /* kept default below */
-          }),
+        action: (el) => Utils.safeClick(el, {}),
       },
+      // 简化作者名
       {
         test: (el) =>
           el.dataset?.tag === "commenter-name" &&
@@ -273,26 +270,22 @@
     ],
 
     div: [
+      // 移除新版双层导航栏
+      {
+        test: (el) => el.dataset?.tag === "mobile-nav-hamburger-button",
+        action: (el) => Utils.safeRemove(el, "nav", 5),
+      },
+      // 移除隐藏导航栏
       {
         test: (el) => el.id === "main-app-navigation",
         action: (el) => Utils.safeRemove(el, null, 1),
       },
-      {
-        test: (el) =>
-          el.getAttribute("aria-expanded") === "false" &&
-          el.textContent?.includes("我的会籍"),
-        action: (el) => Utils.safeRemove(el, "nav", 3),
-      },
-      {
-        test: (el) =>
-          el.dataset?.tag === "creation-name" &&
-          el.textContent?.includes("Love & Peace !"),
-        action: (el) => Utils.safeRemove(el, null, 4),
-      },
+      // 移除搜索框（网站改版中，移动端暂不显示）
       {
         test: (el) => el.dataset?.tag === "search-input-box",
         action: (el) => Utils.safeRemove(el, null, 5),
       },
+      // 移除“新功能”标签
       {
         test: (el) => el.dataset?.tag === "chip-container",
         action: (el) => Utils.safeRemove(el, null, 2),
@@ -315,17 +308,20 @@
         test: (el) => el.dataset?.tag === "comment-field-box",
         action: (el) => Utils.safeRemove(el, null, 3),
       },
+      // 缩小页边距
       {
-        test: (el) => el.dataset?.tag === "post-stream-container",
+        test: (el) => el.dataset?.tag === "cw-post-stream-container",
         action: (el) => {
           el.parentNode?.parentNode?.style.setProperty("padding-left", "0px");
           el.parentNode?.parentNode?.style.setProperty("padding-right", "0px");
         },
       },
+      // 移除发布卡片圆角
       {
         test: (el) => el.dataset?.tag === "post-card",
         action: (el) => el.style.setProperty("--Card-radius-enabled", "0"),
       },
+      // 插入评论区样式
       {
         test: (el) => el.dataset?.tag === "comment-body",
         action: (el) => {
@@ -336,6 +332,7 @@
     ],
 
     span: [
+      // 插入发布区样式
       {
         test: (el) => el.getAttribute("data-tag") === "post-title",
         action: (el) => {
@@ -344,7 +341,8 @@
           targetElement1?.classList.add("TAI-Hostpost");
           targetElement1?.setAttribute("id", "TAI-Hostpost-id");
           const targetElement2 =
-            el.parentNode?.parentNode?.parentNode?.parentNode?.parentNode;
+            el.parentNode?.parentNode?.parentNode?.parentNode?.parentNode
+              ?.parentNode;
           targetElement2?.classList.add("TAI-Postcard");
           targetElement2?.setAttribute("id", "TAI-Postcard-id");
           el.classList.add("TAI-title");
