@@ -168,11 +168,11 @@
   // ======== Patreon Configuration & Styles ==========
   // ==================================================
   const CONFIG = {
-    REMAIN_DAYS: 0,
+    REMAIN_DAYS: 1,
     STYLE_ID: "patreon-expander-styles",
     PATREON_GLOBAL_STYLES: `
       :root { --global-borderWidth-thin: 0px !important; --global-bg-pageAlt-default: #f1f1f1; }
-      #TAI-Postcard-id div { background-color: #ffffff; }
+      #TAI-Postcard-id { --Card-radius-enabled: 0; background-color: #ffffff; }
       #TAI-Hostpost-id div div div p { margin: 8px 0 !important; font-size: 17px !important; line-height: 1.4 !important; }
       #TAI-Hostpost-id li p { margin: 6px 0 !important; }
       #TAI-Hostpost-id ul { margin: 6px 0 !important; }
@@ -319,7 +319,10 @@
       // 移除发布卡片圆角
       {
         test: (el) => el.dataset?.tag === "post-card",
-        action: (el) => el.style.setProperty("--Card-radius-enabled", "0"),
+        action: (el) => {
+          el.classList.add("TAI-Postcard");
+          el.setAttribute("id", "TAI-Postcard-id");
+        },
       },
       // 插入评论区样式
       {
@@ -336,15 +339,10 @@
       {
         test: (el) => el.getAttribute("data-tag") === "post-title",
         action: (el) => {
-          const targetElement1 =
+          const targetElement =
             el.parentNode?.parentNode?.parentNode?.parentNode;
-          targetElement1?.classList.add("TAI-Hostpost");
-          targetElement1?.setAttribute("id", "TAI-Hostpost-id");
-          const targetElement2 =
-            el.parentNode?.parentNode?.parentNode?.parentNode?.parentNode
-              ?.parentNode;
-          targetElement2?.classList.add("TAI-Postcard");
-          targetElement2?.setAttribute("id", "TAI-Postcard-id");
+          targetElement?.classList.add("TAI-Hostpost");
+          targetElement?.setAttribute("id", "TAI-Hostpost-id");
           el.classList.add("TAI-title");
           el.setAttribute("id", "TAI-title-id");
         },
