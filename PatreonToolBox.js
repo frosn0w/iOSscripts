@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PatreonToolBox
 // @namespace    https://github.com/frosn0w/iOSscripts
-// @version      1.25.0907
+// @version      1.25.0926
 // @description  Refactored Patreon page expander and watermarking tool. Modular, rule-driven, safer and more maintainable.
 // @author       Frosn0w
 // @match        *://*/*
@@ -189,19 +189,30 @@
   // ==================================================
   function shouldRemovePost(text) {
     if (!text) return false;
-    const remainDays = CONFIG.REMAIN_DAYS;
+    const remainDays = Number(CONFIG.REMAIN_DAYS);
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
     const currentDay = now.getDate();
 
-    if (text.includes(" 天前")) return true;
-    const match = text.match(/(\d{1,2})月(\d{1,2})日/);
-    if (!match) return false;
-    const month = parseInt(match[1], 10);
-    const day = parseInt(match[2], 10);
-    if (month < currentMonth || (currentMonth === 1 && month === 12))
+    //匹配x天前，允许没有空格、普通空格、NBSP（\u00A0）或全角空格（\u3000）
+    const match1 = String(text).match(/(\d+)[\s\u00A0\u3000]*天前/);
+    if (match1) {
+      const days = parseInt(match1[1], 10);
+      if (!Number.isNaN(days) && days > remainDays) {
+        return true;
+      }
+    }
+
+    //匹配跨年与超过保留天数
+    const match2 = text.match(/(\d{1,2})月(\d{1,2})日/);
+    const month = parseInt(match2[1], 10);
+    const day = parseInt(match2[2], 10);
+    if (month < currentMonth || (currentMonth === 1 && month === 12)) {
       return true;
-    if (month === currentMonth && day < currentDay - remainDays) return true;
+    }
+    if (month === currentMonth && currentDay - day > remainDays) {
+      return true;
+    }
     return false;
   }
 
@@ -266,6 +277,11 @@
           el.dataset?.tag === "commenter-name" &&
           el.textContent === "贝乐斯 Think Analyze Invest",
         action: (el) => (el.textContent = "贝乐斯"),
+      },
+      // 移除评论区“更多”按钮
+      {
+        test: (el) => el.getAttribute("data-tag") === "comment-more-actions",
+        action: (el) => el.remove(),
       },
     ],
 
@@ -493,7 +509,7 @@
     verticalSpacing: 400,
     // these distances are used to avoid watermarking the top and bottom of the page
     pagetopdistance: 120,
-    pagebuttomdistance: 50,
+    pagebuttomdistance: 200,
   };
 
   function applyPageWatermark() {
@@ -667,11 +683,46 @@
       );
       buttons.forEach((btn) => {
         if (btn.textContent.trim() === "贝乐斯") {
-          btn.textContent = "正版微信 bWFzaw";
+          btn.textContent = "正版来微信 ZWG5427";
         }
       });
       Toast.show("文字颜色减弱、博主名替换已完成", 3000);
     })();
+  }
+
+  // ==================================================
+  // ================= Fakers Module ==============
+  // ==================================================
+  function forFakers() {
+    const ps = document.querySelectorAll("div p");
+    ps.forEach((p) => {
+      let text = p.textContent;
+      // 1. 替换特定词语
+      text = text
+        .replace(/美国/g, "雅加达")
+        .replace(/中国/g, "叙利亚")
+        .replace(/黄金/g, "煤炭")
+        .replace(/债券/g, "稀土")
+        .replace(/股票/g, "债券")
+        .replace(/BTC/g, "DSB")
+        .replace(/文明/g, "物理")
+        .replace(/信仰/g, "钢铁")
+        .replace(/左/g, "西")
+        .replace(/右/g, "北纬")
+        .replace(/历史/g, "会计")
+        .replace(/风险/g, "机会")
+        .replace(/人性/g, "文盲")
+        .replace(/不是/g, "是")
+        .replace(/人性/g, "狼狗");
+      // 2. 替换数字为同位数随机数
+      text = text.replace(/\d+/g, (match) => {
+        return match
+          .split("")
+          .map(() => Math.floor(Math.random() * 10))
+          .join("");
+      });
+      p.textContent = text;
+    });
   }
 
   // ==================================================
@@ -680,6 +731,7 @@
   try {
     GM_registerMenuCommand("1. Patreon Expander", runPatreonExpander);
     GM_registerMenuCommand("2. Copyright Protector", addWatermarks);
+    GM_registerMenuCommand("3. For Fakers", forFakers);
   } catch (e) {
     // graceful fallback for environments without GM API
     console.warn("GM_registerMenuCommand not available:", e);
